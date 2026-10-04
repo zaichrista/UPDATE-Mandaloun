@@ -1,0 +1,12 @@
+{
+  "name": "mandaloun-restaurant-api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Restaurant website API for menus, table requests and event enquiries.",
+  "engines": { "node": ">=22.5" },
+  "scripts": {
+    "start": "node --env-file-if-exists=.env src/server.mjs",
+    "dev": "node --env-file-if-exists=.env --watch src/server.mjs"
+  }
+}
