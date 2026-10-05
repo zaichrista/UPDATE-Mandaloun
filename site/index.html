@@ -189,7 +189,13 @@
   .pcontact a:hover { color: #3d5340; }
   .pcontact .links2 { display: flex; flex-wrap: wrap; gap: .5rem 1.6rem; margin-top: 1.7rem; font-size: .86rem; letter-spacing: .2em; text-transform: uppercase; }
   .pcontact .links2 a { font-size: .86rem; }
-  @media (max-width: 760px) { .pcontact { width: auto; right: 16px; top: var(--hdr, 60px); bottom: auto; padding-top: 3vh; } .pcontact p, .pcontact li { font-size: .95rem; line-height: 1.6; } }
+  @media (max-width: 760px) {
+    .pcontact { width: auto; right: 16px; top: var(--hdr, 60px); bottom: auto; padding-top: 2vh; }
+    .pcontact p, .pcontact li { font-size: .95rem; line-height: 1.55; }
+    .pcontact .eyebrow { margin-bottom: .5rem; } .pcontact h1 { font-size: 1.4rem; margin-bottom: 1rem; }
+    .pcontact .hrs { margin: .9rem 0; padding: .7rem 0; } .pcontact .links2 { margin-top: 1rem; gap: .4rem 1.2rem; }
+    .pcontact .links2, .pcontact .links2 a { font-size: .75rem; }
+  }
   /* Enquiry pop-up: a translucent blue window over the page */
   .enq { position: fixed; inset: 0; z-index: 9; display: flex; align-items: center; justify-content: center; padding: 20px;
     background: rgba(6,12,30,.42); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
@@ -284,6 +290,40 @@
     .copy-left  { top: 11vh; }
     .copy-right { top: auto; bottom: 8vh; }
   }
+
+  /* ---- Phones ---- */
+  @media (max-width: 760px) {
+    .bar-top { flex-wrap: nowrap; row-gap: 0; padding: 10px 14px; }
+    .brand { font-size: clamp(.68rem, 2.7vw, .9rem); letter-spacing: .2em; }
+    .links { flex-wrap: nowrap; gap: clamp(.4rem, 2.6vw, .85rem); }
+    .links a { font-size: clamp(.7rem, 3.1vw, .9rem); padding: .55em .12em; }   /* a bigger tap target */
+
+    /* home text: sits over the big tree, so each line gets a soft pale backing to stay readable */
+    .copy br { display: none; }
+    .copy { max-width: 80vw; font-size: .95rem; line-height: 1.6; letter-spacing: .04em; word-spacing: .08em; }
+    .copy p { width: fit-content; max-width: 100%; padding: .65em .85em; background: rgba(220,232,212,.82); border-radius: 3px; }
+    .copy p + p { margin-top: .9em; }
+    .copy-right p { margin-left: auto; text-align: right; }
+    .copy-left { top: calc(var(--hdr, 64px) + 3vh); left: 14px; }
+    .copy-right { right: 14px; top: auto; bottom: 7vh; }
+    .book-wrap { margin-top: 1.4em; padding-right: .4em; }
+
+    /* menus window: nearly the whole screen under the bar */
+    #panel { width: 94vw; height: calc(100vh - var(--hdr, 64px) - 22px); height: calc(100svh - var(--hdr, 64px) - 22px); top: calc(var(--hdr, 64px) + 10px); transform: translate(-50%, 0); }
+    .gh { font-size: .95rem; letter-spacing: .16em; padding: .95rem 0; }
+    .mlist { padding: 18px 18px 40px; }
+    .mlist .intro { letter-spacing: .1em; font-size: .78rem; }
+    .dish .row { gap: .8rem; }
+
+    /* private dining: one piece at a time, centred under the bar on a dark backing (see data-min / data-mout) */
+    .pit:not(.p-btn) { left: 5vw; right: 5vw; top: calc(var(--hdr, 64px) + 5vh); width: auto; margin: 0; text-align: center; padding: 20px 18px;
+      background: rgba(8,16,38,.74); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,.1); border-radius: 3px; }
+    .pit h1 { font-size: 1.15rem; letter-spacing: .2em; }
+    .pit h2 { font-size: .95rem; letter-spacing: .2em; }
+    .pit .cta { justify-content: center; }
+    .p-top .figures { gap: 1.4rem; }
+  }
+  @media (max-width: 350px) { .bar-top { flex-wrap: wrap; } .links { flex-wrap: wrap; justify-content: flex-end; } }
 </style>
 </head>
 <body class="loading">
@@ -307,12 +347,12 @@
 </header>
 
 <section class="copy copy-left" aria-label="About Mandaloun">
-  <p data-at="0.05">What is more authentically Lebanese<br>than a Cedar&nbsp;Tree?</p>
-  <p data-at="0.20">The food we cook, with love,<br>for each customer.</p>
+  <p data-at="0.05">What is more authentically Lebanese<br> than a Cedar&nbsp;Tree?</p>
+  <p data-at="0.20">The food we cook, with love,<br> for each customer.</p>
 </section>
 
 <section class="copy copy-right" aria-label="Book a table">
-  <p data-at="0.38">Discover the true taste of Lebanon<br>in the heart of London,</p>
+  <p data-at="0.38">Discover the true taste of Lebanon<br> in the heart of London,</p>
   <p data-at="0.52">and book your table&nbsp;today.</p>
   <div class="book-wrap" data-at="0.68"><a class="book" href="https://restaurant-1790935816.resos.com/booking" target="_blank" rel="noopener"><svg class="pill" viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path d="M30 6 C70 1 140 3 176 8 C196 12 199 26 195 38 C191 52 168 57 120 58 C80 59 40 58 22 52 C4 46 2 24 12 14 C16 9 22 7 30 6 Z"/></svg><svg class="ring" viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path d="M44 4 C90 -1 160 1 190 9 C203 14 201 34 192 44 C178 58 120 61 70 59 C30 58 6 50 3 33 C0 16 24 6 60 3 C90 1 118 1 140 3"/></svg>Book</a></div>
 </section>
@@ -338,14 +378,14 @@
 <div class="pscroll" id="pscroll" tabindex="0"><div style="height:420vh"></div></div>
 
 <div class="pstage" id="pstage">
-  <section class="pit p-left" data-in="0.04">
+  <section class="pit p-left" data-in="0.04" data-min="0.03" data-mout="0.26">
     <p class="eyebrow">Private dining &amp; events</p>
     <h1>Your occasion, our table</h1>
     <p class="lead">Birthdays, family reunions, company dinners and celebrations of every size, hosted in the heart of Westfield London.</p>
     <div class="cta"><a href="#contact">Start planning</a><a href="tel:+442087498845">Call 020 8749 8845</a></div>
   </section>
 
-  <section class="pit p-top" data-in="0.2">
+  <section class="pit p-top" data-in="0.2" data-min="0.26" data-mout="0.42">
     <p class="eyebrow">Capacity</p>
     <div class="figures">
       <div class="figure"><b>130</b><span>Seated</span></div>
@@ -354,14 +394,14 @@
     </div>
   </section>
 
-  <section class="pit p-mid" data-in="0.36">
+  <section class="pit p-mid" data-in="0.36" data-min="0.42" data-mout="0.64">
     <h2>Choose your format</h2>
     <h3>Private Dining</h3><p>Up to 130 seated guests, including the terrace. Family-style sharing or a formal plated dinner, with menus tailored to your occasion and budget.</p>
     <h3>Catering</h3><p>Take Mandaloun to your own event. Mezze, pastries and grills, customised to your guest list and setting.</p>
     <h3>Bar Services</h3><p>Wine, cocktails and spirits to sit alongside the food, with a signature cocktail created for your event.</p>
   </section>
 
-  <section class="pit p-right" data-in="0.56">
+  <section class="pit p-right" data-in="0.56" data-min="0.64" data-mout="0.86">
     <p class="eyebrow">How it works</p>
     <h2>Three steps</h2>
     <h3>Tell us the day</h3><p>Send your date, the number of guests and the kind of evening you have in mind.</p>
@@ -369,7 +409,7 @@
     <h3>We host</h3><p>On the night, the kitchen, the bar and the room are ours to look after.</p>
   </section>
 
-  <div class="pit p-btn" data-in="0.8"><a class="book blue" href="#enquire"><svg class="pill" viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path d="M30 6 C70 1 140 3 176 8 C196 12 199 26 195 38 C191 52 168 57 120 58 C80 59 40 58 22 52 C4 46 2 24 12 14 C16 9 22 7 30 6 Z"/></svg><svg class="ring" viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path d="M44 4 C90 -1 160 1 190 9 C203 14 201 34 192 44 C178 58 120 61 70 59 C30 58 6 50 3 33 C0 16 24 6 60 3 C90 1 118 1 140 3"/></svg>Enquire</a></div>
+  <div class="pit p-btn" data-in="0.8" data-min="0.86"><a class="book blue" href="#enquire"><svg class="pill" viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path d="M30 6 C70 1 140 3 176 8 C196 12 199 26 195 38 C191 52 168 57 120 58 C80 59 40 58 22 52 C4 46 2 24 12 14 C16 9 22 7 30 6 Z"/></svg><svg class="ring" viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path d="M44 4 C90 -1 160 1 190 9 C203 14 201 34 192 44 C178 58 120 61 70 59 C30 58 6 50 3 33 C0 16 24 6 60 3 C90 1 118 1 140 3"/></svg>Enquire</a></div>
 </div>
 
 <div class="panel" id="panel"><nav class="mnav" id="mnav" aria-label="Menus"></nav><div class="mlist" id="mlist" tabindex="0"></div></div>
@@ -456,17 +496,19 @@
       }
     }
   }
+  // On a phone the tree is sized by height and centred, so it runs off both sides rather than shrinking to fit the width.
+  const fitScale = () => W < 760 ? (H - HDR - TOP_GAP) / CH : Math.min(W * FILL / CW, (H - HDR - TOP_GAP) / CH);
   function resize() {
     dpr = Math.min(window.devicePixelRatio || 1, 2);
     W = window.innerWidth; H = window.innerHeight;
     HDR = headerEl.offsetHeight;                       // the tree sits below the menu bar
     night.style.top = HDR + 'px';
-    { const sC = Math.min(W * FILL / CW, (H - HDR - TOP_GAP) / CH), r = document.documentElement.style;   // where the tree sits (standing on the bottom of the window), for the private dining text
+    { const sC = fitScale(), r = document.documentElement.style;   // where the tree sits (standing on the bottom of the window), for the private dining text
       r.setProperty('--tt', (H - CH * sC) + 'px'); r.setProperty('--th', CH * sC + 'px'); r.setProperty('--tw', CW * sC + 'px'); }
     document.documentElement.style.setProperty('--hdr', HDR + 'px');
     drawStars();
     canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
-    { const room = H - HDR, sCss = Math.min(W * FILL / CW, (H - HDR - TOP_GAP) / CH);   // as tall as the space under the menu bar
+    { const room = H - HDR, sCss = fitScale();   // as tall as the space under the menu bar
       L = { room, sCss, sEnd: Math.max(W / CW, sCss * 1.3), yHome: H - CH * sCss };   // the tree stands on the bottom edge of the window
       cue.style.top = cue2.style.top = (L.yHome + CH * sCss / 2) + 'px'; }   // middle of the tree
     cam.ready = false;                                 // re-fit instantly on resize
@@ -501,7 +543,7 @@
     rotDur = (v === 'contact' || from === 'contact') ? CONTACT_TIME : (v === 'private' || from === 'private') ? NIGHT_TIME : MENU_TIME;
   }
   const panel = document.getElementById('panel'), pscroll = document.getElementById('pscroll'), pcontact = document.getElementById('pcontact'), pstage = document.getElementById('pstage');
-  const pits = [...pstage.children].map(el => ({ el, at: parseFloat(el.dataset.in), out: el.dataset.out ? parseFloat(el.dataset.out) : 2, on: false }));
+  const pits = [...pstage.children].map(el => ({ el, at: parseFloat(el.dataset.in), out: el.dataset.out ? parseFloat(el.dataset.out) : 2, mat: parseFloat(el.dataset.min), mout: el.dataset.mout ? parseFloat(el.dataset.mout) : 2, on: false }));
   const ease = t => t * t * (3 - 2 * t);
   // Motion curve for the tree: eases out of rest, then a long slow settle into a stop (a cubic-bezier(.3,0,.05,1)).
   const glide = (() => {
@@ -531,7 +573,7 @@
   const cam = { k: 0, x: 0, y: 0, vk: 0, vx: 0, vy: 0, ready: false };   // k is log-scale relative to the fitted size
   let L = { room: 0, sCss: 1, sEnd: 1, yHome: 0 };
   function camTarget() {
-    const narrow = W < 760, sc = narrow ? CONTACT_SCALE * .75 : CONTACT_SCALE;
+    const narrow = W < 760, sc = narrow ? Math.min(CONTACT_SCALE * .75, W * .95 / (CW * L.sCss), H * .3 / (CH * L.sCss)) : CONTACT_SCALE;   // on a phone the contact tree is kept inside the screen width
     if (view === 'menus') return { k: Math.log(L.sEnd / L.sCss), x: W / 2, y: L.yHome };            // grows from the tip, which stays put
     if (view === 'contact') {                                                                          // small, settling on the right
       const h = CH * L.sCss * sc;
@@ -617,7 +659,8 @@
     const ptarget = pmax > 0 ? pscroll.scrollTop / pmax : 0;
     pshown += (ptarget - pshown) * (1 - Math.exp(-SNAPPY * dt));   // the tree follows the windows, softly
     for (const l of pits) {                    // each piece comes in at its point in the scroll (the left text hands over to the next)
-      const on = pin && pshown >= l.at && pshown < l.out;
+      const phone = W < 760, a = phone ? l.mat : l.at, o = phone ? l.mout : l.out;   // on a phone the pieces take turns instead of piling up
+      const on = pin && pshown >= a && pshown < o;
       if (on !== l.on) { l.on = on; l.el.classList.toggle('on', on); }
     }
     if (view !== 'private' && sz === 0 && (pscroll.scrollTop || pshown)) {   // back home: reset for next time
@@ -677,7 +720,11 @@
     if (inside && !wasInside) hoverT = 0;                        // only when the pointer arrives on the tree
     wasInside = inside;
   });
-  window.addEventListener('resize', resize);
+  let lastW = window.innerWidth, lastH = window.innerHeight;
+  window.addEventListener('resize', () => {                     // phones fire this when the address bar slides away: ignore that, it would make the tree jump
+    if (matchMedia('(pointer: coarse)').matches && window.innerWidth === lastW && Math.abs(window.innerHeight - lastH) < 170) return;
+    lastW = window.innerWidth; lastH = window.innerHeight; resize();
+  });
   resize();
   setTimeout(() => {
     loader.classList.add('done');
