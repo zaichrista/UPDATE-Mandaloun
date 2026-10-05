@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mandaloun</title>
+<style>
+  :root { --paper: #f3eee2; --ink: #2b2a22; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; background: var(--paper); color: var(--ink); overscroll-behavior: none; }
+  body { position: fixed; inset: 0; }
+
+  #view {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    display: block; cursor: grab;
+    touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+  }
+  #view.dragging { cursor: grabbing; }
+
+  /* Loading state */
+  .loader {
+    position: fixed; inset: 0; z-index: 10;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.25rem;
+    background: var(--paper);
+    transition: opacity .6s ease, visibility .6s;
+    font-family: Georgia, 'Times New Roman', serif;
+  }
+  .loader.done { opacity: 0; visibility: hidden; }
+  .loader .name { font-size: clamp(1.5rem, 5vw, 2.5rem); letter-spacing: .3em; text-transform: uppercase; }
+  .loader .bar { width: min(240px, 60vw); height: 2px; background: rgba(43,42,34,.15); }
+  .loader .bar i { display: block; height: 100%; width: 0; background: #3d5340; transition: width .2s linear; }
+  .loader .pct { font-size: .85rem; letter-spacing: .2em; font-variant-numeric: tabular-nums; }
+
+  /* ?tune readout */
+  #tune { position: fixed; left: 12px; bottom: 12px; font: 12px/1.5 ui-monospace, Menlo, monospace; background: rgba(255,255,255,.8); padding: 8px 10px; border-radius: 6px; white-space: pre; display: none; }
+</style>
+</head>
+<body>
+
+<div class="loader" id="loader" role="status" aria-live="polite">
+  <div class="name">Mandaloun</div>
+  <div class="bar"><i id="bar"></i></div>
+  <div class="pct" id="pct">0%</div>
+</div>
+
+<canvas id="view" role="img" aria-label="A cedar tree. Drag to rotate it and tilt it."></canvas>
+<div id="tune"></div>
+
+<script>
+(async () => {
+  /* ---- settings you can tweak ------------------------------------------ */
+  const PX_PER_FRAME  = 22;    // horizontal drag distance for one 15° step
+  const PX_PER_RING   = 130;   // vertical drag distance to change camera height
+  const FRICTION      = 2.6;   // coasting after release (higher = stops sooner)
+  const FILL          = 0.82;  // how much of the screen the tree fills
+  let   DIR           = 1;     // flip to -1 if dragging right turns the tree the wrong way
+  const PHASE         = [0, 0, 0]; // per-ring rotation offset in frames [low, mid, top] — see ?tune
+  /* ---------------------------------------------------------------------- */
+
+  const canvas = document.getElementById('view');
+  const ctx = canvas.getContext('2d');
+  const loader = document.getElementById('loader');
+  const bar = document.getElementById('bar');
+  const pct = document.getElementById('pct');
+  const tuneEl = document.getElementById('tune');
+  const tune = new URLSearchParams(location.search).has('tune');
+
+  const data = await (await fetch('tree/frames.json')).json();
+  const rings = data.rings;                 // low (side-on) → mid → top (from above)
+  const N = rings[0].frames.length;         // 24 frames = 15° each
+  const total = rings.reduce((n, r) => n + r.frames.length, 0);
+
+  // Bounds of every frame in "tip-axis" coordinates, so the tree fits on screen at any angle
+  let bx0 = 1e9, bx1 = -1e9, by0 = 1e9, by1 = -1e9;
+  for (const r of rings) for (const f of r.frames) {
+    bx0 = Math.min(bx0, f.x); bx1 = Math.max(bx1, f.x + f.w);
+    by0 = Math.min(by0, f.y); by1 = Math.max(by1, f.y + f.h);
+  }
+  const BW = bx1 - bx0, BH = by1 - by0;
+
+  /* ---- preload with progress -------------------------------------------- */
+  let loaded = 0;
+  const tick = () => {
+    loaded++;
+    const p = Math.round(loaded / total * 100);
+    bar.style.width = p + '%'; pct.textContent = p + '%';
+  };
+  await Promise.all(rings.flatMap(r => r.frames.map(f => new Promise(res => {
+    const img = new Image();
+    img.decoding = 'async';
+    img.onload = () => { (img.decode ? img.decode().catch(() => {}) : Promise.resolve()).then(() => { f.img = img; tick(); res(); }); };
+    img.onerror = () => { tick(); res(); };
+    img.src = 'tree/' + f.file;
+  }))));
+
+  /* ---- state ------------------------------------------------------------ */
+  let az = 0;          // rotation, in frames (continuous, wraps at N)
+  let el = 0;          // camera height: 0 = side-on … 2 = from above (continuous while dragging)
+  let vel = 0;         // rotation speed in frames/second while coasting
+  let dragging = false, lastX = 0, lastY = 0, lastT = 0;
+  let dirty = true, activeRing = 1;
+
+  const mod = (a, n) => ((a % n) + n) % n;
+  const ringIdx = () => Math.max(0, Math.min(rings.length - 1, Math.round(el)));
+
+  function frameFor(ri, a) {
+    const i = mod(Math.round(a) * DIR + PHASE[ri], N);
+    return rings[ri].frames[i];
+  }
+
+  /* ---- drawing ---------------------------------------------------------- */
+  let W = 0, H = 0, dpr = 1, scale = 1;
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 3);
+    W = window.innerWidth; H = window.innerHeight;
+    canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+    scale = Math.min(W * FILL / BW, H * FILL / BH);
+    dirty = true;
+  }
+  function draw() {
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const ri = ringIdx(), f = frameFor(ri, az);
+    if (!f || !f.img) return;
+    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+    const s = scale * dpr;
+    const ox = canvas.width / 2 - (bx0 + BW / 2) * s;   // tip axis sits in the middle
+    const oy = canvas.height / 2 - (by0 + BH / 2) * s;
+    ctx.drawImage(f.img, ox + f.x * s, oy + f.y * s, f.w * s, f.h * s);
+    if (tune) {
+      tuneEl.style.display = 'block';
+      tuneEl.textContent =
+        `ring ${ringIdx()} (${rings[ringIdx()].name})  frame ${mod(Math.round(az) * DIR + PHASE[ringIdx()], N)}  [${f.from}]\n` +
+        `active ring ${activeRing}   DIR ${DIR}   PHASE [${PHASE.join(', ')}]\n` +
+        `keys: 0/1/2 pick ring  , . shift its phase  F flip direction  arrows move`;
+    }
+  }
+
+  /* ---- animation loop --------------------------------------------------- */
+  let prev = performance.now();
+  function loop(now) {
+    const dt = Math.min(0.05, (now - prev) / 1000); prev = now;
+    if (!dragging && Math.abs(vel) > 0.05) {
+      az += vel * dt;
+      vel *= Math.exp(-FRICTION * dt);
+      dirty = true;
+    } else if (!dragging) vel = 0;
+    // settle the camera height onto the nearest ring after a drag
+    if (!dragging && Math.abs(el - Math.round(el)) > 0.001) {
+      el += (Math.round(el) - el) * Math.min(1, dt * 14);
+      dirty = true;
+    }
+    if (dirty) { dirty = false; draw(); }
+    requestAnimationFrame(loop);
+  }
+
+  /* ---- input ------------------------------------------------------------ */
+  canvas.addEventListener('pointerdown', e => {
+    dragging = true; vel = 0;
+    lastX = e.clientX; lastY = e.clientY; lastT = performance.now();
+    canvas.setPointerCapture(e.pointerId);
+    canvas.classList.add('dragging');
+  });
+  canvas.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    const now = performance.now(), dt = Math.max(1, now - lastT) / 1000;
+    const dx = e.clientX - lastX, dy = e.clientY - lastY;
+    const dAz = -dx / PX_PER_FRAME;                       // drag right → the front of the tree moves right
+    az += dAz;
+    el = Math.max(0, Math.min(rings.length - 1, el + dy / PX_PER_RING));   // drag down → look from higher up
+    vel = 0.6 * vel + 0.4 * (dAz / dt);                   // smoothed release speed
+    lastX = e.clientX; lastY = e.clientY; lastT = now;
+    dirty = true;
+  });
+  const end = e => {
+    if (!dragging) return;
+    dragging = false; canvas.classList.remove('dragging');
+    if (performance.now() - lastT > 90) vel = 0;           // paused before letting go: no coasting
+    vel = Math.max(-40, Math.min(40, vel));
+  };
+  canvas.addEventListener('pointerup', end);
+  canvas.addEventListener('pointercancel', end);
+
+  window.addEventListener('keydown', e => {
+    const k = e.key;
+    if (k === 'ArrowLeft')  { az -= 1; dirty = true; }
+    else if (k === 'ArrowRight') { az += 1; dirty = true; }
+    else if (k === 'ArrowDown')  { el = Math.min(rings.length - 1, Math.round(el) + 1); dirty = true; }
+    else if (k === 'ArrowUp')    { el = Math.max(0, Math.round(el) - 1); dirty = true; }
+    else if (tune) {
+      if (k === '0' || k === '1' || k === '2') activeRing = +k;
+      else if (k === ',') PHASE[activeRing]--;
+      else if (k === '.') PHASE[activeRing]++;
+      else if (k === 'f' || k === 'F') DIR = -DIR;
+      else return;
+      dirty = true;
+      console.log('DIR =', DIR, '; PHASE =', JSON.stringify(PHASE));
+    } else return;
+    e.preventDefault();
+  });
+  for (const t of ['wheel', 'contextmenu', 'gesturestart'])
+    window.addEventListener(t, e => e.preventDefault(), { passive: false });
+
+  window.addEventListener('resize', resize);
+  resize();
+  requestAnimationFrame(loop);
+
+  setTimeout(() => { loader.classList.add('done'); }, 300);
+})();
+</script>
+</body>
+</html>

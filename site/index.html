@@ -6,9 +6,9 @@
 <title>Mandaloun</title>
 <style>
   :root {
-    --paper: #f3eee2;
+    --paper: #edf2e8;
     --ink: #2b2a22;
-    --screens: 6; /* how many screens tall the scroll is */
+    --screens: 5; /* how many screens tall the scroll is */
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { background: var(--paper); color: var(--ink); }
@@ -17,25 +17,19 @@
   .track { height: calc(var(--screens) * 100vh); height: calc(var(--screens) * 100svh); position: relative; }
 
   /* Pinned stage: stays on screen while the track scrolls */
-  .stage {
-    position: sticky; top: 0;
-    height: 100vh; height: 100svh;
-    width: 100%;
-    overflow: hidden;
-    background: var(--paper);
+  .stage { position: sticky; top: 0; height: 100vh; height: 100svh; width: 100%; overflow: hidden; background: var(--paper); }
+  /* Private dining: a deep navy night sky fades in over the whole page, under the tree and below the menu bar */
+  .night {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(to bottom, #0b1730, #0e1d3a 55%, #0a1429);
+    opacity: 0; visibility: hidden;   /* the whole sky fades in at once, light to dark */
+    pointer-events: none;
   }
-  /* The tree is bigger than the screen; JS sizes it and pans it tip → base */
-  .tree {
-    position: absolute; top: 0; left: 50%;
-    will-change: transform;
-  }
-  .tree img {
-    position: absolute; inset: 0;
-    width: 100%; height: 100%;
-    visibility: hidden;
-    user-select: none; -webkit-user-drag: none;
-  }
-  .tree img.on { visibility: visible; }
+  .night canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  #stars-b { animation: twinkle 5s ease-in-out infinite alternate; }
+  @keyframes twinkle { from { opacity: .35; } to { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { #stars-b { animation: none; } }
+  #tree { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 
   /* Loading state */
   .loader {
@@ -51,8 +45,115 @@
   .loader .bar i { display: block; height: 100%; width: 0; background: #3d5340; transition: width .2s linear; }
   .loader .pct { font-size: .85rem; letter-spacing: .2em; font-variant-numeric: tabular-nums; }
 
-  /* Lock scrolling until loaded */
   body.loading { overflow: hidden; }
+
+  /* Menu bar: stays frozen while the page scrolls */
+  .bar-top {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 5;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: clamp(14px, 2.6vw, 30px) clamp(16px, 3.4vw, 44px);
+    font-family: Georgia, 'Times New Roman', serif;
+    pointer-events: none;            /* only the links catch the mouse, so the page stays draggable/scrollable */
+  }
+  .bar-top a { pointer-events: auto; color: var(--ink); text-decoration: none; }
+  .brand { font-size: clamp(1rem, 2.2vw, 1.4rem); letter-spacing: .3em; text-transform: uppercase; font-weight: 400; }
+  .links { display: flex; gap: clamp(.6rem, 2.6vw, 2.2rem); list-style: none; }
+  .links a { position: relative; display: inline-block; white-space: nowrap; padding: .3em .15em; font-size: clamp(.95rem, 1.7vw, 1.2rem); letter-spacing: .02em; }
+  .links a:focus-visible { outline: none; }
+
+  /* Green hand-drawn oval that draws itself around the link */
+  .links svg {
+    position: absolute; left: -.7em; right: -.7em; top: -.15em; bottom: -.15em;
+    width: calc(100% + 1.4em); height: calc(100% + .3em);
+    overflow: visible; pointer-events: none;
+  }
+  .links path {
+    fill: none; stroke: #3d5340; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+    stroke-dasharray: 1; stroke-dashoffset: 1;
+    opacity: 0;                      /* hides the round end-cap dot while the oval is undrawn */
+    transition: stroke-dashoffset .45s cubic-bezier(.5,.1,.2,1), opacity 0s .45s;
+  }
+  .links a:hover path, .links a:focus-visible path { stroke-dashoffset: 0; opacity: 1; transition: stroke-dashoffset .45s cubic-bezier(.5,.1,.2,1), opacity 0s; }
+  .links li:nth-child(2) svg { transform: rotate(-1.2deg); }
+  .links li:nth-child(3) svg { transform: rotate(1deg); }
+  @media (prefers-reduced-motion: reduce) { .links path { transition: none; } }
+
+  /* "scroll" cue in the middle of the tree: fades as you scroll, returns when you're back at the top */
+  .cue {
+    position: fixed; z-index: 3; left: 50%; top: 56%;
+    transform: translate(-50%, -50%);
+    display: flex; flex-direction: column; align-items: center; gap: .9rem;
+    font-family: Georgia, 'Times New Roman', serif; color: var(--paper);
+    font-size: clamp(.8rem, 1.1vw, 1rem); letter-spacing: .5em; text-indent: .5em;
+    pointer-events: none; opacity: 1; will-change: opacity;
+  }
+  .cue i { display: block; width: 1px; height: 34px; background: currentColor; transform-origin: top; animation: cue-drift 2.8s ease-in-out infinite; }
+  @keyframes cue-drift { 0%, 100% { transform: scaleY(.35); opacity: .5; } 50% { transform: scaleY(1); opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .cue i { animation: none; } }
+
+  /* Copy either side of the tree; each line fades in as you scroll */
+  .copy {
+    position: fixed; z-index: 4; top: 21vh;
+    width: min(31vw, 520px);
+    font-family: Georgia, 'Times New Roman', serif; color: var(--ink);
+    font-size: clamp(1rem, 1.5vw, 1.55rem); line-height: 1.75; white-space: nowrap;   /* line breaks are set by hand in the HTML */
+    letter-spacing: .09em; word-spacing: .22em;
+    pointer-events: none;
+  }
+  .copy p + p { margin-top: 2.2em; }
+  .copy-left  { left: clamp(16px, 3.4vw, 44px); }
+  .copy-right { right: clamp(16px, 3.4vw, 44px); text-align: right; }
+  /* Slow, soft reveal: each line drifts up and sharpens out of a blur. Triggered by scroll, then plays on its own timing. */
+  .copy [data-at] {
+    opacity: 0; transform: translateY(18px); filter: blur(8px); visibility: hidden;
+    transition: opacity .9s ease, transform .9s ease, filter .9s ease, visibility 0s .9s;   /* leaving: quicker and quiet */
+  }
+  .copy [data-at].in {
+    opacity: 1; transform: none; filter: blur(0); visibility: visible;
+    transition: opacity 2.4s cubic-bezier(.16,1,.3,1), transform 2.8s cubic-bezier(.16,1,.3,1), filter 2.2s ease-out, visibility 0s;
+  }
+  @media (prefers-reduced-motion: reduce) { .copy [data-at], .copy [data-at].in { transition-duration: .01s; transform: none; filter: none; } }
+
+  /* Menus: the text fades away, and a white box fades in once the zoom is under way */
+  .copy { transition: opacity .7s ease, visibility 0s; }
+  body.menus .copy { opacity: 0; visibility: hidden; transition: opacity .7s ease, visibility 0s .7s; }
+  .panel {
+    position: fixed; z-index: 4; left: 50%; top: 56%; transform: translate(-50%, -50%);
+    width: min(72vw, 960px); height: min(62vh, 640px);
+    background: #fff; box-shadow: 0 20px 60px rgba(43,42,34,.18);
+    opacity: 0; visibility: hidden; transition: opacity 1.1s ease, visibility 0s 1.1s;
+  }
+  .panel.in { opacity: 1; visibility: visible; transition: opacity 1.1s ease, visibility 0s; }
+
+  /* Book button: a hand-drawn green oval inside a hand-drawn gold outline */
+  .book {
+    position: relative; isolation: isolate; display: inline-block; pointer-events: auto;
+    padding: 1.15em 3.3em 1.1em;
+    color: #edf2e8; text-decoration: none;
+    font-size: .6em; letter-spacing: .38em; text-indent: .38em; text-transform: uppercase; line-height: 1;
+    transition: color .7s ease;
+  }
+  .book svg { position: absolute; overflow: visible; pointer-events: none; z-index: -1; }
+  .book .pill { inset: 0; width: 100%; height: 100%; }
+  .book .pill path { fill: #3d5340; transition: fill .7s ease; }
+  .book .ring { inset: -.45em -.8em; width: calc(100% + 1.6em); height: calc(100% + .9em); transition: inset .7s cubic-bezier(.2,.7,.2,1), width .7s cubic-bezier(.2,.7,.2,1), height .7s cubic-bezier(.2,.7,.2,1); }
+  .book .ring path { fill: none; stroke: #c9a24a; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+  .book:hover, .book:focus-visible { color: #2b2a22; outline: none; }
+  .book:hover .pill path, .book:focus-visible .pill path { fill: #c9a24a; }
+  .book:hover .ring, .book:focus-visible .ring { inset: 0; width: 100%; height: 100%; }   /* gold outline shrinks to meet the green */
+  .book-wrap { margin-top: 1.9em; padding-right: 1.2em; }
+
+  @media (max-width: 900px) {   /* more links than fit beside the name: let them wrap onto a second row */
+    .bar-top { flex-wrap: wrap; row-gap: .4rem; }
+    .links { flex-wrap: wrap; justify-content: flex-end; row-gap: .2rem; }
+  }
+
+  @media (max-width: 760px) {
+    .copy { width: auto; max-width: 62vw; font-size: 1.05rem; white-space: normal; }
+    .copy-left  { top: 11vh; }
+    .copy-right { top: auto; bottom: 8vh; }
+  }
 </style>
 </head>
 <body class="loading">
@@ -63,93 +164,248 @@
   <div class="pct" id="pct">0%</div>
 </div>
 
+<header class="bar-top">
+  <a class="brand" href="#home">Mandaloun</a>
+  <nav aria-label="Main">
+    <ul class="links">
+      <li><a href="#menus">Menus<svg viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M52 3 C28 1 6 8 4 21 C2 34 26 39 54 38 C80 37 98 30 96 18 C94 7 72 2 44 4"/></svg></a></li>
+      <li><a href="#private-dining">Private Dining<svg viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M52 3 C28 1 6 8 4 21 C2 34 26 39 54 38 C80 37 98 30 96 18 C94 7 72 2 44 4"/></svg></a></li>
+      <li><a href="#book">Book<svg viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M52 3 C28 1 6 8 4 21 C2 34 26 39 54 38 C80 37 98 30 96 18 C94 7 72 2 44 4"/></svg></a></li>
+      <li><a href="#visit">Visit<svg viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M52 3 C28 1 6 8 4 21 C2 34 26 39 54 38 C80 37 98 30 96 18 C94 7 72 2 44 4"/></svg></a></li>
+      <li><a href="#contact">Contact<svg viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M52 3 C28 1 6 8 4 21 C2 34 26 39 54 38 C80 37 98 30 96 18 C94 7 72 2 44 4"/></svg></a></li>
+    </ul>
+  </nav>
+</header>
+
+<section class="copy copy-left" aria-label="About Mandaloun">
+  <p data-at="0.05">What is more authentically Lebanese<br>than a Cedar&nbsp;Tree?</p>
+  <p data-at="0.20">The food we cook, with love,<br>for each customer.</p>
+</section>
+
+<section class="copy copy-right" aria-label="Book a table">
+  <p data-at="0.38">Discover the true taste of Lebanon<br>in the heart of London,</p>
+  <p data-at="0.52">and book your table&nbsp;today.</p>
+  <div class="book-wrap" data-at="0.68"><a class="book" href="#book"><svg class="pill" viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path d="M30 6 C70 1 140 3 176 8 C196 12 199 26 195 38 C191 52 168 57 120 58 C80 59 40 58 22 52 C4 46 2 24 12 14 C16 9 22 7 30 6 Z"/></svg><svg class="ring" viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path d="M44 4 C90 -1 160 1 190 9 C203 14 201 34 192 44 C178 58 120 61 70 59 C30 58 6 50 3 33 C0 16 24 6 60 3 C90 1 118 1 140 3"/></svg>Book</a></div>
+</section>
+
+<div class="panel" id="panel"></div>
+
+<div class="cue" id="cue" aria-hidden="true">scroll<i></i></div>
+
 <main class="track" id="track">
-  <div class="stage" aria-label="Cedar tree rotating as you scroll">
-    <div class="tree" id="stage"></div>
+  <div class="stage">
+    <div class="night" id="night"><canvas id="stars-a"></canvas><canvas id="stars-b"></canvas></div>
+    <canvas id="tree" role="img" aria-label="A cedar tree that turns as you scroll down it"></canvas>
   </div>
 </main>
 
 <script>
-(() => {
-  const FRAMES = 14;                        // 000 … 013
-  const ASPECT = 3508 / 2481;               // frame width / height
-  const ZOOM = 2;                           // tree height as a multiple of the screen height (bigger = more travel, more side crop)
-  const TIP = 0.03, BASE = 0.97;            // where the tip / base sit inside the frame (fraction of height)
-  const src = i => `cedar/${String(i).padStart(3, '0')}.png`;
+(async () => {
+  /* ---- settings you can tweak ------------------------------------------ */
+  const FILL   = 0.96; // how much of the window the whole tree fills (1 = edge to edge)
+  const TURNS  = 3;   // full rotations of the tree over the whole scroll
+  const MENU_TIME = 3.2;   // seconds for the home → menus transition
+  const MENU_MOD = 0.075;  // menus end a little past a whole turn, so the tree is still easing round when the box appears
+  const ZOOM_END = 0.7;    // point in the transition where the zoom stops (tree as wide as the window)
+  const BOX_AT = 0.5;      // point in the transition where the white box fades in
+  const NIGHT_TIME = 3.6; // seconds for the home → private dining transition
+  const SNAPPY = 5;   // how quickly the tree catches up with your scroll (higher = snappier, lower = more floaty and soft)
+  /* ---------------------------------------------------------------------- */
 
-  const stage = document.getElementById('stage');
+  const canvas = document.getElementById('tree');
+  const ctx = canvas.getContext('2d');
   const track = document.getElementById('track');
   const loader = document.getElementById('loader');
   const bar = document.getElementById('bar');
   const pct = document.getElementById('pct');
 
-  const imgs = [];
-  let loaded = 0, current = -1;
+  const all = (await (await fetch('real/frames.json')).json()).frames;     // 25 frames: -180° → +180°
+  const frames = all.slice(0, 24);                                         // frame 25 is the same angle as 01, so the loop is 24
+  const N = frames.length;
 
-  function finish() {
+  // Bounds of the tree across all frames, in tip/trunk-axis coordinates
+  let top = 1e9, bottom = -1e9, left = 1e9, right = -1e9;
+  for (const f of frames) { top = Math.min(top, f.y); bottom = Math.max(bottom, f.y + f.h); left = Math.min(left, f.x); right = Math.max(right, f.x + f.w); }
+  const CH = bottom - top, CW = right - left;   // size of the tree at its widest / tallest
+
+  /* ---- preload with progress -------------------------------------------- */
+  let loaded = 0;
+  const tick = () => {
+    loaded++;
+    const p = Math.round(loaded / N * 100);
+    bar.style.width = p + '%'; pct.textContent = p + '%';
+  };
+  await Promise.all(frames.map(f => new Promise(res => {
+    const img = new Image();
+    img.decoding = 'async';
+    img.onload = () => { (img.decode ? img.decode().catch(() => {}) : Promise.resolve()).then(() => { f.img = img; tick(); res(); }); };
+    img.onerror = () => { tick(); res(); };
+    img.src = 'real/' + f.file;
+  })));
+
+  /* ---- layout + drawing ------------------------------------------------- */
+  const headerEl = document.querySelector('.bar-top');
+  const cue = document.getElementById('cue');
+  let cueOpacity = -1;
+  let W = 0, H = 0, dpr = 1, dirty = true, HDR = 0;
+  function drawStars() {            // static scatter, redrawn on resize; layer b twinkles via CSS
+    const w = W, h = Math.max(1, H - HDR);
+    let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    for (const id of ['stars-a', 'stars-b']) {
+      const c = document.getElementById(id), g = c.getContext('2d');
+      c.width = Math.round(w * dpr); c.height = Math.round(h * dpr);
+      g.scale(dpr, dpr);
+      const count = Math.round(w * h / (id === 'stars-a' ? 2600 : 5200));
+      for (let i = 0; i < count; i++) {
+        const x = rnd() * w, y = rnd() * h, r = (rnd() < .06 ? 1.5 : .45 + rnd() * .75), a = .35 + rnd() * .65;
+        g.fillStyle = 'rgba(' + (rnd() < .3 ? '255,236,200' : '225,235,255') + ',' + a.toFixed(2) + ')';
+        g.beginPath(); g.arc(x, y, r, 0, 6.2832); g.fill();
+        if (r > 1.4) { g.fillStyle = 'rgba(225,235,255,.12)'; g.beginPath(); g.arc(x, y, r * 3, 0, 6.2832); g.fill(); }
+      }
+    }
+  }
+  function resize() {
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth; H = window.innerHeight;
+    HDR = headerEl.offsetHeight;                       // the tree sits below the menu bar
+    night.style.top = HDR + 'px';
+    drawStars();
+    cue.style.top = (HDR + (H - HDR - 12) / 2) + 'px';   // middle of the tree
+    canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+    dirty = true;
+  }
+
+  let held = null;                 // scroll position frozen while the menus are open, so home comes back exactly as it was
+  let view = 'home';               // 'home' | 'menus' | 'private'
+  let mz = 0, sz = 0;              // 0 = home, 1 = menus / private dining (each moves on its own, in either direction)
+  const night = document.getElementById('night');
+  // Rotation is its own tween (in turns), restarted from the current angle on every click, so any change of view
+  // starts from wherever the tree is and reverses cleanly if interrupted.
+  let rotFrom = 0, rotTo = 0, rp = 1, rotDur = MENU_TIME;
+  const rotCur = () => rotFrom + (rotTo - rotFrom) * glide(rp);
+  const fmod = (v) => v - Math.floor(v);
+  function turnTo(v, from) {
+    const cur = rotCur(); rotFrom = cur; rp = 0;
+    if (v === 'home') { rotTo = 0; if (rotFrom >= 1) rotFrom = ((rotFrom - 1) % 1) + 1; }   // unwinds exactly what it did
+    else {
+      const mod = v === 'menus' ? MENU_MOD : 0;
+      const fwd = fmod(mod - rotFrom);                              // forward distance to the next matching angle
+      rotTo = rotFrom + fwd + (from === 'home' ? 1 : 0);            // from home: one full turn; between menus and private dining: straight round
+    }
+    rotDur = (v === 'private' || from === 'private') ? NIGHT_TIME : MENU_TIME;
+  }
+  const panel = document.getElementById('panel');
+  const ease = t => t * t * (3 - 2 * t);
+  // Motion curve for the tree: eases out of rest, then a long slow settle into a stop (a cubic-bezier(.3,0,.05,1)).
+  const glide = (() => {
+    const x1 = .3, y1 = 0, x2 = .05, y2 = 1;
+    const bez = (t, a, b) => 3 * a * t * (1 - t) * (1 - t) + 3 * b * t * t * (1 - t) + t * t * t;
+    const dbez = (t, a, b) => 3 * a * (1 - t) * (1 - t) + 6 * (b - a) * t * (1 - t) + 3 * (1 - b) * t * t;
+    return x => {
+      if (x <= 0) return 0; if (x >= 1) return 1;
+      let t = x;
+      for (let i = 0; i < 8; i++) { const d = dbez(t, x1, x2); if (Math.abs(d) < 1e-6) break; t -= (bez(t, x1, x2) - x) / d; }
+      t = Math.min(1, Math.max(0, t));
+      return bez(t, y1, y2);
+    };
+  })();
+  function progress() {
+    if (held !== null) return held;
+    const max = track.offsetHeight - window.innerHeight;
+    return max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+  }
+
+  let shown = progress();          // eased progress that the picture follows
+  let lastIdx = -1, lastE = -1;
+
+  const mod = (v, n) => ((v % n) + n) % n;
+  function draw() {
+    const e = glide(Math.min(1, mz / ZOOM_END));                  // zoom + rotation share one eased curve
+    const turns = shown * TURNS + rotCur();                        // the tree turns from wherever it is now
+    const idx = mod(Math.round(turns * N), N);                   // rotation: one angle at a time
+    if (idx === lastIdx && !dirty && e === lastE) return;        // nothing changed
+    lastIdx = idx; lastE = e; dirty = false;
+    const f = frames[idx];
+    if (!f || !f.img) return;
+    const room = H - HDR - 12;                                  // window height left under the menu bar
+    const sCss = Math.min(W * FILL / CW, room / CH);            // whole tree fits in the window
+    const sEnd = Math.max(W / CW, sCss * 1.3);                  // menus: tree as wide as the window
+    const s = sCss * Math.pow(sEnd / sCss, e) * dpr;            // grows from the tip, which stays put
+    const y0 = (HDR + (room - CH * sCss) / 2) * dpr;            // centred below the bar; it only rotates, it doesn't travel
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(f.img, canvas.width / 2 + f.x * s, y0 + (f.y - top) * s, f.w * s, f.h * s);
+  }
+
+  /* ---- copy: lines reveal as you pass their point; they ease back out if you scroll up past it */
+  const lines = [...document.querySelectorAll('[data-at]')].map(el => ({ el, at: parseFloat(el.dataset.at), on: false }));
+  function updateCopy(p) {
+    for (const l of lines) {
+      const on = l.on ? p >= l.at - 0.015 : p >= l.at;         // small cushion so it doesn't flicker at the threshold
+      if (on !== l.on) { l.on = on; l.el.classList.toggle('in', on); }
+    }
+  }
+
+  /* ---- animation loop: ease toward the scroll position ------------------ */
+  let prev = performance.now();
+  function loop(now) {
+    const dt = Math.min(0.05, (now - prev) / 1000); prev = now;
+    const target = progress();
+    const diff = target - shown;
+    shown = Math.abs(diff) < 0.0002 ? target : shown + diff * (1 - Math.exp(-SNAPPY * dt));
+    // zoom and night run together, so menus <-> private dining is one merged move
+    const gm = view === 'menus' ? 1 : 0;
+    const gs = view === 'private' ? 1 : 0;
+    if (mz !== gm) { mz += Math.sign(gm - mz) * dt / MENU_TIME; mz = gm ? Math.min(gm, mz) : Math.max(gm, mz); }
+    if (sz !== gs) { sz += Math.sign(gs - sz) * dt / NIGHT_TIME; sz = gs ? Math.min(gs, sz) : Math.max(gs, sz); }
+    if (rp < 1) rp = Math.min(1, rp + dt / rotDur);
+    if (mz === 0 && sz === 0 && view === 'home' && held !== null) { held = null; document.documentElement.style.overflow = ''; }
+    night.style.opacity = ease(sz).toFixed(3);                 // the whole page goes from light to dark together
+    night.style.visibility = sz > 0 ? 'visible' : 'hidden';
+    draw();
+    updateCopy(shown);
+    panel.classList.toggle('in', view === 'menus' && mz >= BOX_AT);
+    const o = Math.max(0, 1 - window.scrollY / (H * 0.25)) * (1 - Math.min(1, (mz + sz) * 4));   // gone after a quarter-screen of scrolling, back at the top; also gone in menus
+    if (Math.abs(o - cueOpacity) > 0.005) { cueOpacity = o; cue.style.opacity = o; }
+    requestAnimationFrame(loop);
+  }
+
+  /* ---- home <-> menus <-> private dining: no manual scroll or zoom, the page moves itself -------- */
+  const VIEWS = { '#menus': 'menus', '#private-dining': 'private', '#home': 'home' };
+  function setView(v) {
+    if (v === view) return;
+    turnTo(v, view);
+    view = v;
+    document.body.classList.toggle('menus', v !== 'home');          // the home text fades away in either
+    if (v !== 'home') {
+      if (held === null) held = progress();                         // freeze the scroll where it is
+      document.documentElement.style.overflow = 'hidden';
+    }
+    for (const [h, name] of Object.entries(VIEWS)) { const l = document.querySelector('a[href="' + h + '"]'); if (l && name !== 'home') l.toggleAttribute('aria-current', name === v); }
+  }
+  document.addEventListener('click', ev => {
+    const a = ev.target.closest('a[href="#menus"], a[href="#private-dining"], a[href="#home"]');
+    if (!a) return;
+    ev.preventDefault();
+    const h = a.getAttribute('href');
+    setView(VIEWS[h]);
+    history.replaceState(null, '', h === '#home' ? location.pathname : h);
+  });
+  if (VIEWS[location.hash] && VIEWS[location.hash] !== 'home') {    // deep link: start there, no animation
+    const v = VIEWS[location.hash]; view = v; held = 0;
+    if (v === 'menus') { mz = 1; rotFrom = rotTo = MENU_MOD + 1; } else { sz = 1; rotFrom = rotTo = 1; }
+    document.body.classList.add('menus'); document.documentElement.style.overflow = 'hidden';
+  }
+
+  window.addEventListener('resize', resize);
+  resize();
+  setTimeout(() => {
     loader.classList.add('done');
     document.body.classList.remove('loading');
-    update();
-  }
-
-  function onFrame() {
-    loaded++;
-    const p = Math.round(loaded / FRAMES * 100);
-    bar.style.width = p + '%';
-    pct.textContent = p + '%';
-    if (loaded === FRAMES) setTimeout(finish, 300);
-  }
-
-  // Build and preload every frame (errors still count so the page never hangs)
-  for (let i = 0; i < FRAMES; i++) {
-    const img = new Image();
-    img.alt = '';
-    img.decoding = 'async';
-    img.draggable = false;
-    img.onload = () => { (img.decode ? img.decode().catch(() => {}) : Promise.resolve()).then(onFrame); };
-    img.onerror = onFrame;
-    img.src = src(i);
-    stage.appendChild(img);
-    imgs.push(img);
-  }
-  imgs[0].classList.add('on');
-  current = 0;
-
-  // Size the tree larger than the screen
-  let H = 0;
-  function layout() {
-    H = window.innerHeight * ZOOM;
-    stage.style.height = H + 'px';
-    stage.style.width = H * ASPECT + 'px';
-    stage.style.marginLeft = -(H * ASPECT) / 2 + 'px';
-    update();
-  }
-
-  // Scroll progress (0 → 1) drives both the vertical travel and the frame
-  function update() {
-    const max = track.offsetHeight - window.innerHeight;
-    const p = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
-
-    // Travel: tip at the top of the screen at p=0, base at the bottom at p=1
-    const y0 = -TIP * H;
-    const y1 = window.innerHeight - BASE * H;
-    stage.style.transform = `translate3d(0, ${y0 + p * (y1 - y0)}px, 0)`;
-
-    const idx = Math.min(FRAMES - 1, Math.floor(p * FRAMES));
-    if (idx === current) return;
-    imgs[current].classList.remove('on');
-    imgs[idx].classList.add('on');
-    current = idx;
-  }
-
-  let ticking = false;
-  window.addEventListener('scroll', () => {
-    if (ticking) return;
-    ticking = true;
-    requestAnimationFrame(() => { update(); ticking = false; });
-  }, { passive: true });
-  window.addEventListener('resize', layout);
-  layout();
+    window.scrollTo(0, window.scrollY);
+    shown = progress();
+    requestAnimationFrame(loop);
+  }, 300);
 })();
 </script>
 </body>
