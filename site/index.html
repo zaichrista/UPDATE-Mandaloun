@@ -6,18 +6,19 @@
 <title>Mandaloun</title>
 <style>
   :root {
-    --paper: #edf2e8;
+    --paper: #edf2e8;   /* light text colour (the scroll cue) */
+    --bg: #dce8d4;      /* page background: a little stronger green */
     --ink: #2b2a22;
     --screens: 5; /* how many screens tall the scroll is */
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { background: var(--paper); color: var(--ink); }
+  html, body { background: var(--bg); color: var(--ink); }
 
   /* Scroll track: this is what gives the page its height */
   .track { height: calc(var(--screens) * 100vh); height: calc(var(--screens) * 100svh); position: relative; }
 
   /* Pinned stage: stays on screen while the track scrolls */
-  .stage { position: sticky; top: 0; height: 100vh; height: 100svh; width: 100%; overflow: hidden; background: var(--paper); }
+  .stage { position: sticky; top: 0; height: 100vh; height: 100svh; width: 100%; overflow: hidden; background: var(--bg); }
   /* Private dining: a deep navy night sky fades in over the whole page, under the tree and below the menu bar */
   .night {
     position: absolute; left: 0; right: 0; bottom: 0;
@@ -35,7 +36,7 @@
   .loader {
     position: fixed; inset: 0; z-index: 10;
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.25rem;
-    background: var(--paper);
+    background: var(--bg);
     transition: opacity .6s ease, visibility .6s;
     font-family: Georgia, 'Times New Roman', serif;
   }
@@ -51,7 +52,7 @@
   .bar-top {
     position: fixed; top: 0; left: 0; right: 0; z-index: 5;
     display: flex; align-items: center; justify-content: space-between;
-    padding: clamp(14px, 2.6vw, 30px) clamp(16px, 3.4vw, 44px);
+    padding: clamp(7px, 1.1vw, 14px) clamp(16px, 3.4vw, 44px);
     font-family: Georgia, 'Times New Roman', serif;
     pointer-events: none;            /* only the links catch the mouse, so the page stays draggable/scrollable */
   }
@@ -92,6 +93,12 @@
   @keyframes cue-drift { 0%, 100% { transform: scaleY(.35); opacity: .5; } 50% { transform: scaleY(1); opacity: 1; } }
   @media (prefers-reduced-motion: reduce) { .cue i { animation: none; } }
 
+  /* "view our menus": takes the scroll cue's place at the bottom of the page, with an underline that grows and shrinks */
+  .cue-menus { text-decoration: none; opacity: 0; pointer-events: none; gap: .7rem; white-space: nowrap; }
+  .cue-menus i { width: 100%; height: 1px; transform-origin: center; animation: cue-line 2.8s ease-in-out infinite; }
+  @keyframes cue-line { 0%, 100% { transform: scaleX(.18); opacity: .55; } 50% { transform: scaleX(1); opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .cue-menus i { animation: none; } }
+
   /* Copy either side of the tree; each line fades in as you scroll */
   .copy {
     position: fixed; z-index: 4; top: 21vh;
@@ -120,9 +127,132 @@
   body.menus .copy { opacity: 0; visibility: hidden; transition: opacity .7s ease, visibility 0s .7s; }
   .panel {
     position: fixed; z-index: 4; left: 50%; top: 56%; transform: translate(-50%, -50%);
-    width: min(72vw, 960px); height: min(62vh, 640px);
+    width: min(94vw, 1500px); height: min(70vh, 740px);
     background: #fff; box-shadow: 0 20px 60px rgba(43,42,34,.18);
+    display: grid; grid-template-columns: minmax(170px, 24%) 1fr; overflow: hidden;
+    font-family: Georgia, 'Times New Roman', serif; color: var(--ink);
     opacity: 0; visibility: hidden; transition: opacity 1.1s ease, visibility 0s 1.1s;
+  }
+  /* Menu window: pick a menu on the left, its dishes on the right. Only the right-hand list scrolls. */
+  .mnav { display: flex; flex-direction: column; justify-content: center; gap: .15rem; padding: clamp(18px, 3vw, 44px) clamp(14px, 2vw, 30px) clamp(18px, 3vw, 44px) clamp(18px, 3vw, 44px); border-right: 1px solid rgba(43,42,34,.14); overflow-y: auto; }
+  .mnav button { all: unset; box-sizing: border-box; cursor: pointer; position: relative; padding: .55em .2em; font-size: clamp(1rem, 1.7vw, 1.5rem); letter-spacing: .04em; opacity: .5; transition: opacity .3s ease, color .3s ease, padding-left .3s ease; }
+  .mnav button:hover, .mnav button:focus-visible { opacity: .85; }
+  .mnav button[aria-selected="true"] { opacity: 1; color: #3d5340; padding-left: .9em; }
+  .mnav button[aria-selected="true"]::before { content: ""; position: absolute; left: 0; top: 50%; width: .5em; height: 1px; background: #c9a24a; }
+  .mlist { overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: rgba(61,83,64,.4) transparent; padding: clamp(18px, 3vw, 44px) clamp(18px, 3.4vw, 56px) clamp(28px, 4vw, 60px); }
+  .mlist .intro { font-size: clamp(.8rem, 1vw, .95rem); letter-spacing: .14em; text-transform: uppercase; color: #3d5340; line-height: 1.7; margin-bottom: 1.6rem; }
+  /* Category headings: same face, size and letter-spacing as the "Mandaloun" title. Click to expand or collapse. */
+  .grp { border-bottom: 1px solid #c9a24a; }
+  .gh { all: unset; box-sizing: border-box; cursor: pointer; display: flex; width: 100%; justify-content: space-between; align-items: center; gap: 1rem; padding: 1.1rem 0; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(1rem, 2.2vw, 1.4rem); letter-spacing: .3em; text-transform: uppercase; font-weight: 400; color: var(--ink); }
+  .gh:hover .tt, .gh:focus-visible .tt { color: #3d5340; }
+  .gh .rt { display: flex; align-items: center; gap: 1.1rem; letter-spacing: .08em; font-size: .62em; }
+  .gh .pm { position: relative; width: 14px; height: 14px; flex: none; }
+  .gh .pm::before, .gh .pm::after { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: #3d5340; transition: transform .45s cubic-bezier(.2,.7,.2,1); }
+  .gh .pm::after { transform: rotate(90deg); }
+  .grp.open .gh .pm::after { transform: rotate(0deg); }
+  .gb { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .5s cubic-bezier(.2,.7,.2,1); }
+  .grp.open .gb { grid-template-rows: 1fr; }
+  .gi { overflow: hidden; min-height: 0; visibility: hidden; transition: visibility 0s .5s; }
+  .grp.open .gi { visibility: visible; transition: visibility 0s; }
+  .gi > :last-child { margin-bottom: 1rem; }
+  @media (prefers-reduced-motion: reduce) { .gb, .gh .pm::before, .gh .pm::after { transition: none; } }
+  .mlist .gnote { font-size: .9rem; font-style: italic; opacity: .7; margin: 0 0 .3rem; }
+  .dish { padding: .95rem 0; border-bottom: 1px solid rgba(43,42,34,.09); }
+  .dish .row { display: flex; justify-content: space-between; align-items: baseline; gap: 1.2rem; }
+  .dish .nm { font-size: clamp(1rem, 1.35vw, 1.2rem); letter-spacing: .02em; }
+  .dish .k { font-size: .72em; letter-spacing: .08em; opacity: .6; margin-left: .5em; }
+  .dish .pr { white-space: nowrap; font-variant-numeric: tabular-nums; font-size: clamp(.95rem, 1.2vw, 1.1rem); }
+  .dish .ds { margin-top: .3rem; font-size: clamp(.85rem, 1.05vw, 1rem); line-height: 1.6; opacity: .72; max-width: 62ch; }
+  .mlist .fine { margin-top: 2rem; font-size: .8rem; line-height: 1.7; opacity: .6; }
+  @media (max-width: 760px) {
+    .panel { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+    .mnav { flex-direction: row; justify-content: flex-start; overflow-x: auto; overflow-y: hidden; border-right: 0; border-bottom: 1px solid rgba(43,42,34,.14); padding: 12px 14px; gap: .4rem; }
+    .mnav button { white-space: nowrap; font-size: 1rem; padding: .4em .7em; }
+    .mnav button[aria-selected="true"] { padding-left: .7em; } .mnav button[aria-selected="true"]::before { display: none; }
+  }
+  /* Contact: the tree drifts to the right and shrinks; the details sit on the left */
+  .pcontact { position: fixed; z-index: 4; left: clamp(16px, 3.4vw, 44px); top: var(--hdr, 60px); bottom: 0; width: min(40vw, 570px);
+    display: flex; flex-direction: column; justify-content: center; font-family: Georgia, 'Times New Roman', serif; color: var(--ink); pointer-events: none; visibility: hidden; transition: visibility 0s 1s; }
+  .pcontact.on { visibility: visible; transition: visibility 0s; }
+  .pcontact > * { opacity: 0; transform: translateY(18px); filter: blur(8px); transition: opacity .8s ease, transform .8s ease, filter .8s ease; }
+  .pcontact.on > * { opacity: 1; transform: none; filter: blur(0); transition: opacity 2.2s cubic-bezier(.16,1,.3,1), transform 2.6s cubic-bezier(.16,1,.3,1), filter 2s ease-out; }
+  .pcontact.on > :nth-child(2) { transition-delay: .15s; } .pcontact.on > :nth-child(3) { transition-delay: .3s; } .pcontact.on > :nth-child(4) { transition-delay: .45s; }
+  .pcontact.on > :nth-child(5) { transition-delay: .6s; } .pcontact.on > :nth-child(6) { transition-delay: .75s; }
+  .pcontact .eyebrow { font-size: clamp(.8rem, 1vw, .95rem); letter-spacing: .3em; text-transform: uppercase; color: #3d5340; margin-bottom: 1rem; }
+  .pcontact h1 { font-weight: 400; font-size: clamp(1.45rem, 2.9vw, 2.4rem); letter-spacing: .3em; text-transform: uppercase; margin-bottom: 1.8rem; }
+  .pcontact p, .pcontact li { font-size: clamp(1.05rem, 1.45vw, 1.4rem); line-height: 1.8; letter-spacing: .03em; }
+  .pcontact .hrs { list-style: none; margin: 1.6rem 0; padding: 1.2rem 0; border-top: 1px solid #c9a24a; border-bottom: 1px solid #c9a24a; }
+  .pcontact .hrs li { display: flex; justify-content: space-between; gap: 1.5rem; }
+  .pcontact .hrs b { font-weight: 400; }
+  .pcontact .hrs span { opacity: .75; }
+  .pcontact a { pointer-events: auto; color: var(--ink); text-decoration: none; border-bottom: 1px solid #c9a24a; transition: color .3s ease; }
+  .pcontact a:hover { color: #3d5340; }
+  .pcontact .links2 { display: flex; flex-wrap: wrap; gap: .5rem 1.6rem; margin-top: 1.7rem; font-size: .86rem; letter-spacing: .2em; text-transform: uppercase; }
+  .pcontact .links2 a { font-size: .86rem; }
+  @media (max-width: 760px) { .pcontact { width: auto; right: 16px; top: var(--hdr, 60px); bottom: auto; padding-top: 3vh; } .pcontact p, .pcontact li { font-size: .95rem; line-height: 1.6; } }
+  /* Enquiry pop-up: a translucent blue window over the page */
+  .enq { position: fixed; inset: 0; z-index: 9; display: flex; align-items: center; justify-content: center; padding: 20px;
+    background: rgba(6,12,30,.42); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+    opacity: 0; visibility: hidden; transition: opacity .6s ease, visibility 0s .6s; }
+  .enq.open { opacity: 1; visibility: visible; transition: opacity .6s ease, visibility 0s; }
+  .enq-win { position: relative; width: min(92vw, 640px); max-height: 86vh; overflow-y: auto; padding: clamp(28px, 4vw, 52px);
+    background: rgba(36,66,122,.72); border: 1px solid rgba(201,162,74,.55); border-radius: 3px;
+    -webkit-backdrop-filter: blur(14px) saturate(1.15); backdrop-filter: blur(14px) saturate(1.15);
+    box-shadow: 0 24px 70px rgba(2,6,18,.5); color: #eef1fa; font-family: Georgia, 'Times New Roman', serif;
+    transform: translateY(22px) scale(.98); transition: transform .7s cubic-bezier(.16,1,.3,1); }
+  .enq.open .enq-win { transform: none; }
+  .enq-win .eyebrow { font-size: .8rem; letter-spacing: .3em; text-transform: uppercase; color: #c9a24a; margin-bottom: .9rem; }
+  .enq-win h2 { font-weight: 400; font-size: clamp(1.1rem, 2.2vw, 1.5rem); letter-spacing: .3em; text-transform: uppercase; line-height: 1.5; margin-bottom: 1.6rem; }
+  .enq-ph { border: 1px dashed rgba(238,241,250,.45); padding: clamp(2.2rem, 6vw, 3.6rem) 1.4rem; text-align: center; }
+  .enq-ph strong { display: block; font-weight: 400; letter-spacing: .3em; text-transform: uppercase; font-size: .85rem; color: #c9a24a; margin-bottom: .8rem; }
+  .enq-ph p { line-height: 1.7; opacity: .85; }
+  .enq-ph a { color: inherit; text-decoration: none; border-bottom: 1px solid #c9a24a; }
+  .enq-x { all: unset; box-sizing: border-box; cursor: pointer; position: absolute; top: 14px; right: 16px; width: 34px; height: 34px; }
+  .enq-x::before, .enq-x::after { content: ""; position: absolute; left: 7px; right: 7px; top: 50%; height: 1px; background: #eef1fa; transform: rotate(45deg); transition: background .3s ease; }
+  .enq-x::after { transform: rotate(-45deg); }
+  .enq-x:hover::before, .enq-x:hover::after, .enq-x:focus-visible::before, .enq-x:focus-visible::after { background: #c9a24a; }
+  @media (prefers-reduced-motion: reduce) { .enq, .enq-win { transition-duration: .01s; } }
+  /* Private dining: no boxes. Text sits around and on the tree; scrolling turns the tree and brings each piece in. */
+  .pscroll { position: fixed; z-index: 4; inset: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; opacity: 0; visibility: hidden; pointer-events: none; transition: opacity 1.1s ease, visibility 0s 1.1s; }
+  .pscroll::-webkit-scrollbar { display: none; }
+  .pscroll.in { opacity: 1; visibility: visible; pointer-events: auto; transition: opacity 1.1s ease, visibility 0s; }
+  .pstage { position: fixed; inset: 0; z-index: 4; pointer-events: none; font-family: Georgia, 'Times New Roman', serif; color: #eef1fa; text-shadow: 0 1px 10px rgba(5,10,24,.55); }
+  .pit { position: absolute; opacity: 0; transform: translateY(18px); filter: blur(8px); visibility: hidden;
+    transition: opacity .9s ease, transform .9s ease, filter .9s ease, visibility 0s .9s; }
+  .pstage.in .pit.on { opacity: 1; transform: none; filter: blur(0); visibility: visible;
+    transition: opacity 2.4s cubic-bezier(.16,1,.3,1), transform 2.8s cubic-bezier(.16,1,.3,1), filter 2.2s ease-out, visibility 0s; }
+  @media (prefers-reduced-motion: reduce) { .pit, .pstage.in .pit.on { transition-duration: .01s; transform: none; filter: none; } }
+  .pit a { pointer-events: auto; }
+  .pit .eyebrow { font-size: clamp(.7rem, .9vw, .85rem); letter-spacing: .3em; text-transform: uppercase; color: #c9a24a; margin-bottom: .9rem; }
+  .pit h1, .pit h2 { font-weight: 400; letter-spacing: .3em; text-transform: uppercase; line-height: 1.5; }
+  .pit h1 { font-size: clamp(1.15rem, 2.2vw, 1.8rem); }
+  .pit h2 { font-size: clamp(.9rem, 1.4vw, 1.15rem); margin-bottom: .8rem; }
+  .pit h3 { font-weight: 400; letter-spacing: .14em; text-transform: uppercase; font-size: clamp(.72rem, .95vw, .9rem); color: #c9a24a; margin: .9rem 0 .25rem; }
+  .pit h3:first-of-type { margin-top: 0; }
+  .pit p { line-height: 1.65; font-size: clamp(.82rem, 1.05vw, 1rem); opacity: .9; }
+  .pit .lead { margin-top: 1rem; font-size: clamp(.95rem, 1.3vw, 1.2rem); }
+  .pit .cta { display: flex; flex-wrap: wrap; gap: 1.4rem; margin-top: 1.5rem; }
+  .pit .cta a { color: #eef1fa; text-decoration: none; letter-spacing: .22em; text-transform: uppercase; font-size: .72rem; padding-bottom: .35em; border-bottom: 1px solid #c9a24a; transition: color .3s ease; }
+  .pit .cta a:hover { color: #c9a24a; }
+  /* tree-relative placement: --tt / --th / --tw are the tree's top, height and width, set from the script */
+  .p-left { left: clamp(16px, 3.4vw, 44px); top: calc(var(--tt, 100px) + var(--th, 600px) * .14); width: min(30vw, 440px); }
+  .p-right { right: clamp(16px, 3.4vw, 44px); top: calc(var(--tt, 100px) + var(--th, 600px) * .14); width: min(26vw, 380px); text-align: center; }
+  .p-top, .p-mid { left: 0; right: 0; margin: 0 auto; text-align: center; }
+  .p-top { top: calc(var(--tt, 100px) + var(--th, 600px) * .25); width: max(190px, calc(var(--tw, 900px) * .2)); }
+  .p-mid { top: calc(var(--tt, 100px) + var(--th, 600px) * .45); width: max(280px, calc(var(--tw, 900px) * .34)); }
+  .p-top .figures { display: flex; justify-content: center; gap: clamp(.8rem, 1.6vw, 1.6rem); }
+  .p-top .figure b { display: block; font-weight: 400; font-size: clamp(1.3rem, 2.2vw, 2rem); line-height: 1.1; color: #fff; }
+  .p-top .figure span { font-size: .6rem; letter-spacing: .16em; text-transform: uppercase; opacity: .8; }
+  .p-btn { left: 0; right: 0; margin: 0 auto; text-align: center; top: calc(var(--tt, 100px) + var(--th, 600px) * .96 - 1.4em); font-size: clamp(1rem, 1.5vw, 1.55rem); }
+  .book.blue .pill path { fill: #24427a; }
+  .book.blue:hover .pill path, .book.blue:focus-visible .pill path { fill: #c9a24a; }
+  .book.blue { color: #eef1fa; text-shadow: none; }
+  .book.blue:hover, .book.blue:focus-visible { color: #0d1b34; }
+  @media (max-width: 760px) {
+    .p-left { width: 64vw; top: calc(var(--tt, 100px) + 4vh); }
+    .p-right { width: 64vw; top: calc(var(--tt, 100px) + var(--th, 600px) * .66); }
+    .p-top { width: 56vw; top: calc(var(--tt, 100px) + var(--th, 600px) * .3); }
+    .p-mid { width: 72vw; top: calc(var(--tt, 100px) + var(--th, 600px) * .5); }
   }
   .panel.in { opacity: 1; visibility: visible; transition: opacity 1.1s ease, visibility 0s; }
 
@@ -170,8 +300,7 @@
     <ul class="links">
       <li><a href="#menus">Menus<svg viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M52 3 C28 1 6 8 4 21 C2 34 26 39 54 38 C80 37 98 30 96 18 C94 7 72 2 44 4"/></svg></a></li>
       <li><a href="#private-dining">Private Dining<svg viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M52 3 C28 1 6 8 4 21 C2 34 26 39 54 38 C80 37 98 30 96 18 C94 7 72 2 44 4"/></svg></a></li>
-      <li><a href="#book">Book<svg viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M52 3 C28 1 6 8 4 21 C2 34 26 39 54 38 C80 37 98 30 96 18 C94 7 72 2 44 4"/></svg></a></li>
-      <li><a href="#visit">Visit<svg viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M52 3 C28 1 6 8 4 21 C2 34 26 39 54 38 C80 37 98 30 96 18 C94 7 72 2 44 4"/></svg></a></li>
+      <li><a href="https://restaurant-1790935816.resos.com/booking" target="_blank" rel="noopener">Book<svg viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M52 3 C28 1 6 8 4 21 C2 34 26 39 54 38 C80 37 98 30 96 18 C94 7 72 2 44 4"/></svg></a></li>
       <li><a href="#contact">Contact<svg viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true"><path pathLength="1" d="M52 3 C28 1 6 8 4 21 C2 34 26 39 54 38 C80 37 98 30 96 18 C94 7 72 2 44 4"/></svg></a></li>
     </ul>
   </nav>
@@ -185,12 +314,68 @@
 <section class="copy copy-right" aria-label="Book a table">
   <p data-at="0.38">Discover the true taste of Lebanon<br>in the heart of London,</p>
   <p data-at="0.52">and book your table&nbsp;today.</p>
-  <div class="book-wrap" data-at="0.68"><a class="book" href="#book"><svg class="pill" viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path d="M30 6 C70 1 140 3 176 8 C196 12 199 26 195 38 C191 52 168 57 120 58 C80 59 40 58 22 52 C4 46 2 24 12 14 C16 9 22 7 30 6 Z"/></svg><svg class="ring" viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path d="M44 4 C90 -1 160 1 190 9 C203 14 201 34 192 44 C178 58 120 61 70 59 C30 58 6 50 3 33 C0 16 24 6 60 3 C90 1 118 1 140 3"/></svg>Book</a></div>
+  <div class="book-wrap" data-at="0.68"><a class="book" href="https://restaurant-1790935816.resos.com/booking" target="_blank" rel="noopener"><svg class="pill" viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path d="M30 6 C70 1 140 3 176 8 C196 12 199 26 195 38 C191 52 168 57 120 58 C80 59 40 58 22 52 C4 46 2 24 12 14 C16 9 22 7 30 6 Z"/></svg><svg class="ring" viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path d="M44 4 C90 -1 160 1 190 9 C203 14 201 34 192 44 C178 58 120 61 70 59 C30 58 6 50 3 33 C0 16 24 6 60 3 C90 1 118 1 140 3"/></svg>Book</a></div>
 </section>
 
-<div class="panel" id="panel"></div>
+<section class="pcontact" id="pcontact" aria-label="Contact">
+  <p class="eyebrow">Find us</p>
+  <h1>Contact</h1>
+  <p class="addr">Mandaloun Westfield<br>1 Ariel Way, Westfield Shopping Centre,<br>Shepherds Bush, London W12 7SL</p>
+  <ul class="hrs"><li><b>Monday to Saturday</b><span>11am to midnight</span></li><li><b>Sunday</b><span>11am to 11pm</span></li><li><b>Christmas Day</b><span>Closed</span></li></ul>
+  <p class="lines"><a href="tel:+442087498845">020 8749 8845</a><br><a href="mailto:info@mandaloun.com">info@mandaloun.com</a></p>
+  <p class="links2"><a href="https://www.google.com/maps/search/?api=1&amp;query=Mandaloun+Westfield+London+1+Ariel+Way+W12+7SL" target="_blank" rel="noopener">Open in Maps</a><a href="https://www.instagram.com/mandalounuk" target="_blank" rel="noopener">Instagram</a><a href="https://www.tiktok.com/@mandalounwestfield" target="_blank" rel="noopener">TikTok</a><a href="https://www.facebook.com/mandalounuk" target="_blank" rel="noopener">Facebook</a></p>
+</section>
+
+<div class="enq" id="enq" role="dialog" aria-modal="true" aria-labelledby="enq-t" aria-hidden="true">
+  <div class="enq-win">
+    <button class="enq-x" id="enq-x" type="button" aria-label="Close"></button>
+    <p class="eyebrow">Private dining &amp; events</p>
+    <h2 id="enq-t">Plan your event</h2>
+    <div class="enq-ph"><strong>Enquiry form</strong><p>Placeholder: the enquiry form will go here. In the meantime, call us on <a href="tel:+442087498845">020 8749 8845</a>.</p></div>
+  </div>
+</div>
+
+<div class="pscroll" id="pscroll" tabindex="0"><div style="height:420vh"></div></div>
+
+<div class="pstage" id="pstage">
+  <section class="pit p-left" data-in="0.04">
+    <p class="eyebrow">Private dining &amp; events</p>
+    <h1>Your occasion, our table</h1>
+    <p class="lead">Birthdays, family reunions, company dinners and celebrations of every size, hosted in the heart of Westfield London.</p>
+    <div class="cta"><a href="#contact">Start planning</a><a href="tel:+442087498845">Call 020 8749 8845</a></div>
+  </section>
+
+  <section class="pit p-top" data-in="0.2">
+    <p class="eyebrow">Capacity</p>
+    <div class="figures">
+      <div class="figure"><b>130</b><span>Seated</span></div>
+      <div class="figure"><b>90</b><span>Inside</span></div>
+      <div class="figure"><b>40</b><span>Terrace</span></div>
+    </div>
+  </section>
+
+  <section class="pit p-mid" data-in="0.36">
+    <h2>Choose your format</h2>
+    <h3>Private Dining</h3><p>Up to 130 seated guests, including the terrace. Family-style sharing or a formal plated dinner, with menus tailored to your occasion and budget.</p>
+    <h3>Catering</h3><p>Take Mandaloun to your own event. Mezze, pastries and grills, customised to your guest list and setting.</p>
+    <h3>Bar Services</h3><p>Wine, cocktails and spirits to sit alongside the food, with a signature cocktail created for your event.</p>
+  </section>
+
+  <section class="pit p-right" data-in="0.56">
+    <p class="eyebrow">How it works</p>
+    <h2>Three steps</h2>
+    <h3>Tell us the day</h3><p>Send your date, the number of guests and the kind of evening you have in mind.</p>
+    <h3>Shape the menu</h3><p>Our team works with you on a menu that fits your guests and your budget.</p>
+    <h3>We host</h3><p>On the night, the kitchen, the bar and the room are ours to look after.</p>
+  </section>
+
+  <div class="pit p-btn" data-in="0.8"><a class="book blue" href="#enquire"><svg class="pill" viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path d="M30 6 C70 1 140 3 176 8 C196 12 199 26 195 38 C191 52 168 57 120 58 C80 59 40 58 22 52 C4 46 2 24 12 14 C16 9 22 7 30 6 Z"/></svg><svg class="ring" viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path d="M44 4 C90 -1 160 1 190 9 C203 14 201 34 192 44 C178 58 120 61 70 59 C30 58 6 50 3 33 C0 16 24 6 60 3 C90 1 118 1 140 3"/></svg>Enquire</a></div>
+</div>
+
+<div class="panel" id="panel"><nav class="mnav" id="mnav" aria-label="Menus"></nav><div class="mlist" id="mlist" tabindex="0"></div></div>
 
 <div class="cue" id="cue" aria-hidden="true">scroll<i></i></div>
+<a class="cue cue-menus" id="cue2" href="#menus">view our menus<i></i></a>
 
 <main class="track" id="track">
   <div class="stage">
@@ -202,13 +387,20 @@
 <script>
 (async () => {
   /* ---- settings you can tweak ------------------------------------------ */
+  const TOP_GAP = 22;   // px of space between the menu bar and the tree tip (the tree runs from just under the menu bar to the bottom edge)
   const FILL   = 0.96; // how much of the window the whole tree fills (1 = edge to edge)
   const TURNS  = 3;   // full rotations of the tree over the whole scroll
   const MENU_TIME = 3.2;   // seconds for the home → menus transition
   const MENU_MOD = 0.075;  // menus end a little past a whole turn, so the tree is still easing round when the box appears
-  const ZOOM_END = 0.7;    // point in the transition where the zoom stops (tree as wide as the window)
+  const CAM_TIME = 1.0;    // how quickly the camera (zoom + position) settles: lower is quicker
+  const CAM_SLOW = 1.8;    // the slower move into the contact page
   const BOX_AT = 0.5;      // point in the transition where the white box fades in
+  const CONTACT_TIME = 4.8; // seconds for the slow move to the contact page
+  const SPIN_BASE = 0.1;   // contact page: slow constant turn (turns per second)
+  const SPIN_FAST = 3.5;   // extra speed on hover: super fast for half a second, then it slows back down
+  const CONTACT_SCALE = 0.6; // how small the tree gets
   const NIGHT_TIME = 3.6; // seconds for the home → private dining transition
+  const P_TURNS = 2;       // turns of the tree over the whole private dining scroll
   const SNAPPY = 5;   // how quickly the tree catches up with your scroll (higher = snappier, lower = more floaty and soft)
   /* ---------------------------------------------------------------------- */
 
@@ -245,7 +437,7 @@
 
   /* ---- layout + drawing ------------------------------------------------- */
   const headerEl = document.querySelector('.bar-top');
-  const cue = document.getElementById('cue');
+  const cue = document.getElementById('cue'), cue2 = document.getElementById('cue2');
   let cueOpacity = -1;
   let W = 0, H = 0, dpr = 1, dirty = true, HDR = 0;
   function drawStars() {            // static scatter, redrawn on resize; layer b twinkles via CSS
@@ -269,14 +461,25 @@
     W = window.innerWidth; H = window.innerHeight;
     HDR = headerEl.offsetHeight;                       // the tree sits below the menu bar
     night.style.top = HDR + 'px';
+    { const sC = Math.min(W * FILL / CW, (H - HDR - TOP_GAP) / CH), r = document.documentElement.style;   // where the tree sits (standing on the bottom of the window), for the private dining text
+      r.setProperty('--tt', (H - CH * sC) + 'px'); r.setProperty('--th', CH * sC + 'px'); r.setProperty('--tw', CW * sC + 'px'); }
+    document.documentElement.style.setProperty('--hdr', HDR + 'px');
     drawStars();
-    cue.style.top = (HDR + (H - HDR - 12) / 2) + 'px';   // middle of the tree
     canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+    { const room = H - HDR, sCss = Math.min(W * FILL / CW, (H - HDR - TOP_GAP) / CH);   // as tall as the space under the menu bar
+      L = { room, sCss, sEnd: Math.max(W / CW, sCss * 1.3), yHome: H - CH * sCss };   // the tree stands on the bottom edge of the window
+      cue.style.top = cue2.style.top = (L.yHome + CH * sCss / 2) + 'px'; }   // middle of the tree
+    cam.ready = false;                                 // re-fit instantly on resize
+    stepCamera(0);
     dirty = true;
   }
 
   let held = null;                 // scroll position frozen while the menus are open, so home comes back exactly as it was
   let view = 'home';               // 'home' | 'menus' | 'private'
+  let pshown = 0;                  // eased scroll position inside the private dining windows (0 to 1)
+  let spin = 0, spinGain = 0, hoverT = 99, wasInside = false;   // contact page: constant turning, plus the hover burst
+  let treeBox = { l: 0, r: 0, t: 0, b: 0 };
+  let cz = 0;                      // contact: 0 = home, 1 = tree small on the right, details on the left
   let mz = 0, sz = 0;              // 0 = home, 1 = menus / private dining (each moves on its own, in either direction)
   const night = document.getElementById('night');
   // Rotation is its own tween (in turns), restarted from the current angle on every click, so any change of view
@@ -285,16 +488,20 @@
   const rotCur = () => rotFrom + (rotTo - rotFrom) * glide(rp);
   const fmod = (v) => v - Math.floor(v);
   function turnTo(v, from) {
-    const cur = rotCur(); rotFrom = cur; rp = 0;
+    const cur = rotCur() + spin; rotFrom = cur; rp = 0; spin = 0;   // fold the contact page's spin in, so leaving it is seamless
     if (v === 'home') { rotTo = 0; if (rotFrom >= 1) rotFrom = ((rotFrom - 1) % 1) + 1; }   // unwinds exactly what it did
-    else {
+    else if (v === 'private') {                                      // private dining always settles on the home tree's first frame, wherever the tree started
+      const T0 = (held !== null ? held : progress()) * TURNS + rotFrom;
+      let adj = fmod(0 - T0); if (adj >= .5) adj -= 1;              // nearest way round to that frame, so it stays about one full turn
+      rotTo = rotFrom + 1 + adj;
+    } else if (from === 'home' && v !== 'contact') {                  // home to menus / private dining: one turn, landing on a tidy angle
       const mod = v === 'menus' ? MENU_MOD : 0;
-      const fwd = fmod(mod - rotFrom);                              // forward distance to the next matching angle
-      rotTo = rotFrom + fwd + (from === 'home' ? 1 : 0);            // from home: one full turn; between menus and private dining: straight round
-    }
-    rotDur = (v === 'private' || from === 'private') ? NIGHT_TIME : MENU_TIME;
+      rotTo = rotFrom + fmod(mod - rotFrom) + 1;
+    } else rotTo = rotFrom + 1;                                     // every other move (including any into contact): exactly one full turn from where the tree is
+    rotDur = (v === 'contact' || from === 'contact') ? CONTACT_TIME : (v === 'private' || from === 'private') ? NIGHT_TIME : MENU_TIME;
   }
-  const panel = document.getElementById('panel');
+  const panel = document.getElementById('panel'), pscroll = document.getElementById('pscroll'), pcontact = document.getElementById('pcontact'), pstage = document.getElementById('pstage');
+  const pits = [...pstage.children].map(el => ({ el, at: parseFloat(el.dataset.in), out: el.dataset.out ? parseFloat(el.dataset.out) : 2, on: false }));
   const ease = t => t * t * (3 - 2 * t);
   // Motion curve for the tree: eases out of rest, then a long slow settle into a stop (a cubic-bezier(.3,0,.05,1)).
   const glide = (() => {
@@ -316,25 +523,54 @@
   }
 
   let shown = progress();          // eased progress that the picture follows
-  let lastIdx = -1, lastE = -1;
+  let lastIdx = -1;
 
   const mod = (v, n) => ((v % n) + n) % n;
+  /* ---- camera: where the tree is and how big. Springs chase a target for the current view, so a move can start from
+     any size or position (even mid-move) and the motion carries its momentum instead of jerking. ---- */
+  const cam = { k: 0, x: 0, y: 0, vk: 0, vx: 0, vy: 0, ready: false };   // k is log-scale relative to the fitted size
+  let L = { room: 0, sCss: 1, sEnd: 1, yHome: 0 };
+  function camTarget() {
+    const narrow = W < 760, sc = narrow ? CONTACT_SCALE * .75 : CONTACT_SCALE;
+    if (view === 'menus') return { k: Math.log(L.sEnd / L.sCss), x: W / 2, y: L.yHome };            // grows from the tip, which stays put
+    if (view === 'contact') {                                                                          // small, settling on the right
+      const h = CH * L.sCss * sc;
+      return { k: Math.log(sc), x: narrow ? W / 2 : W * .74, y: narrow ? H - h - 10 : HDR + (L.room - h) / 2 };   // centred on the right (on phones, along the bottom)
+    }
+    return { k: 0, x: W / 2, y: L.yHome };
+  }
+  // critically damped spring (smooth-damp): no overshoot, keeps its velocity if the target changes mid-move
+  function damp(cur, vel, target, smooth, dt) {
+    const w = 2 / smooth, x = w * dt, ex = 1 / (1 + x + .48 * x * x + .235 * x * x * x), d = cur - target, t = (vel + w * d) * dt;
+    return [target + (d + t) * ex, (vel - w * t) * ex];
+  }
+  function stepCamera(dt) {
+    const T = camTarget();
+    if (!cam.ready) { Object.assign(cam, T, { vk: 0, vx: 0, vy: 0, ready: true }); dirty = true; return; }
+    const sm = view === 'contact' ? CAM_SLOW : CAM_TIME;
+    const px = Math.max(Math.abs(cam.x - T.x), Math.abs(cam.y - T.y), Math.abs(cam.k - T.k) * 400);
+    if (px < .02 && Math.abs(cam.vx) + Math.abs(cam.vy) + Math.abs(cam.vk) * 400 < .02) {
+      if (cam.k !== T.k || cam.x !== T.x || cam.y !== T.y) { cam.k = T.k; cam.x = T.x; cam.y = T.y; cam.vk = cam.vx = cam.vy = 0; dirty = true; }
+      return;
+    }
+    [cam.k, cam.vk] = damp(cam.k, cam.vk, T.k, sm, dt);
+    [cam.x, cam.vx] = damp(cam.x, cam.vx, T.x, sm, dt);
+    [cam.y, cam.vy] = damp(cam.y, cam.vy, T.y, sm, dt);
+    dirty = true;
+  }
   function draw() {
-    const e = glide(Math.min(1, mz / ZOOM_END));                  // zoom + rotation share one eased curve
-    const turns = shown * TURNS + rotCur();                        // the tree turns from wherever it is now
+    const turns = shown * TURNS + rotCur() + spin + P_TURNS * pshown * sz;                        // the tree turns from wherever it is now
     const idx = mod(Math.round(turns * N), N);                   // rotation: one angle at a time
-    if (idx === lastIdx && !dirty && e === lastE) return;        // nothing changed
-    lastIdx = idx; lastE = e; dirty = false;
+    if (idx === lastIdx && !dirty) return;                       // nothing changed
+    lastIdx = idx; dirty = false;
     const f = frames[idx];
     if (!f || !f.img) return;
-    const room = H - HDR - 12;                                  // window height left under the menu bar
-    const sCss = Math.min(W * FILL / CW, room / CH);            // whole tree fits in the window
-    const sEnd = Math.max(W / CW, sCss * 1.3);                  // menus: tree as wide as the window
-    const s = sCss * Math.pow(sEnd / sCss, e) * dpr;            // grows from the tip, which stays put
-    const y0 = (HDR + (room - CH * sCss) / 2) * dpr;            // centred below the bar; it only rotates, it doesn't travel
+    const sCss2 = L.sCss * Math.exp(cam.k);
+    const s = sCss2 * dpr, y0 = cam.y * dpr, cx = cam.x * dpr;
+    treeBox = { l: cam.x - CW * sCss2 * .35, r: cam.x + CW * sCss2 * .35, t: cam.y, b: cam.y + CH * sCss2 };   // for the contact page hover
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
-    ctx.drawImage(f.img, canvas.width / 2 + f.x * s, y0 + (f.y - top) * s, f.w * s, f.h * s);
+    ctx.drawImage(f.img, cx + f.x * s, y0 + (f.y - top) * s, f.w * s, f.h * s);
   }
 
   /* ---- copy: lines reveal as you pass their point; they ease back out if you scroll up past it */
@@ -356,22 +592,46 @@
     // zoom and night run together, so menus <-> private dining is one merged move
     const gm = view === 'menus' ? 1 : 0;
     const gs = view === 'private' ? 1 : 0;
+    const gc = view === 'contact' ? 1 : 0;
+    if (cz !== gc) { cz += Math.sign(gc - cz) * dt / CONTACT_TIME; cz = gc ? Math.min(gc, cz) : Math.max(gc, cz); }
     if (mz !== gm) { mz += Math.sign(gm - mz) * dt / MENU_TIME; mz = gm ? Math.min(gm, mz) : Math.max(gm, mz); }
     if (sz !== gs) { sz += Math.sign(gs - sz) * dt / NIGHT_TIME; sz = gs ? Math.min(gs, sz) : Math.max(gs, sz); }
     if (rp < 1) rp = Math.min(1, rp + dt / rotDur);
-    if (mz === 0 && sz === 0 && view === 'home' && held !== null) { held = null; document.documentElement.style.overflow = ''; }
+    if (mz === 0 && sz === 0 && cz === 0 && view === 'home' && held !== null) { held = null; document.documentElement.style.overflow = ''; }
     night.style.opacity = ease(sz).toFixed(3);                 // the whole page goes from light to dark together
     night.style.visibility = sz > 0 ? 'visible' : 'hidden';
+    if (view === 'contact' && cz === 1) {          // the tree turns on its own here; a hover sends it spinning, then it settles back
+      spinGain = Math.min(1, spinGain + dt / 1.5);
+      hoverT += dt;
+      const m = hoverT < 0.5 ? 1 : hoverT > 4 ? 0 : Math.exp(-(hoverT - 0.5) / 0.55);
+      spin += dt * spinGain * (SPIN_BASE + SPIN_FAST * m);
+    } else spinGain = 0;
+    stepCamera(dt);
     draw();
     updateCopy(shown);
     panel.classList.toggle('in', view === 'menus' && mz >= BOX_AT);
-    const o = Math.max(0, 1 - window.scrollY / (H * 0.25)) * (1 - Math.min(1, (mz + sz) * 4));   // gone after a quarter-screen of scrolling, back at the top; also gone in menus
+    const pin = view === 'private' && sz >= BOX_AT;
+    pscroll.classList.toggle('in', pin); pstage.classList.toggle('in', pin);
+    pcontact.classList.toggle('on', view === 'contact' && cz >= .55);
+    const pmax = pscroll.scrollHeight - pscroll.clientHeight;
+    const ptarget = pmax > 0 ? pscroll.scrollTop / pmax : 0;
+    pshown += (ptarget - pshown) * (1 - Math.exp(-SNAPPY * dt));   // the tree follows the windows, softly
+    for (const l of pits) {                    // each piece comes in at its point in the scroll (the left text hands over to the next)
+      const on = pin && pshown >= l.at && pshown < l.out;
+      if (on !== l.on) { l.on = on; l.el.classList.toggle('on', on); }
+    }
+    if (view !== 'private' && sz === 0 && (pscroll.scrollTop || pshown)) {   // back home: reset for next time
+      pscroll.scrollTop = 0; pshown = 0;
+    }
+    const o = Math.max(0, 1 - window.scrollY / (H * 0.25)) * (1 - Math.min(1, (mz + sz + cz) * 4));   // gone after a quarter-screen of scrolling, back at the top; also gone in menus
+    const o2 = Math.min(1, Math.max(0, (shown - 0.93) / 0.05)) * (1 - Math.min(1, (mz + sz + cz) * 4));   // appears at the very bottom of the page
+    cue2.style.opacity = o2; cue2.style.pointerEvents = o2 > 0.5 && view === 'home' ? 'auto' : 'none';
     if (Math.abs(o - cueOpacity) > 0.005) { cueOpacity = o; cue.style.opacity = o; }
     requestAnimationFrame(loop);
   }
 
   /* ---- home <-> menus <-> private dining: no manual scroll or zoom, the page moves itself -------- */
-  const VIEWS = { '#menus': 'menus', '#private-dining': 'private', '#home': 'home' };
+  const VIEWS = { '#menus': 'menus', '#private-dining': 'private', '#contact': 'contact', '#home': 'home' };
   function setView(v) {
     if (v === view) return;
     turnTo(v, view);
@@ -383,8 +643,23 @@
     }
     for (const [h, name] of Object.entries(VIEWS)) { const l = document.querySelector('a[href="' + h + '"]'); if (l && name !== 'home') l.toggleAttribute('aria-current', name === v); }
   }
+  pscroll.addEventListener('wheel', () => {}, { passive: true });
+  /* ---- enquiry pop-up ---- */
+  const enq = document.getElementById('enq'), enqX = document.getElementById('enq-x');
+  let enqFrom = null;
+  function enqOpen(open) {
+    enq.classList.toggle('open', open); enq.setAttribute('aria-hidden', !open);
+    if (open) { enqFrom = document.activeElement; setTimeout(() => enqX.focus(), 50); } else if (enqFrom) { enqFrom.focus(); enqFrom = null; }
+  }
+  enqX.addEventListener('click', () => enqOpen(false));
+  enq.addEventListener('click', ev => { if (ev.target === enq) enqOpen(false); });   // click outside the window
+  document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && enq.classList.contains('open')) enqOpen(false); });
   document.addEventListener('click', ev => {
-    const a = ev.target.closest('a[href="#menus"], a[href="#private-dining"], a[href="#home"]');
+    const q = ev.target.closest('a[href="#enquire"]');
+    if (q) { ev.preventDefault(); enqOpen(true); }
+  });
+  document.addEventListener('click', ev => {
+    const a = ev.target.closest('a[href="#menus"], a[href="#private-dining"], a[href="#contact"], a[href="#home"]');
     if (!a) return;
     ev.preventDefault();
     const h = a.getAttribute('href');
@@ -393,10 +668,15 @@
   });
   if (VIEWS[location.hash] && VIEWS[location.hash] !== 'home') {    // deep link: start there, no animation
     const v = VIEWS[location.hash]; view = v; held = 0;
-    if (v === 'menus') { mz = 1; rotFrom = rotTo = MENU_MOD + 1; } else { sz = 1; rotFrom = rotTo = 1; }
+    if (v === 'menus') { mz = 1; rotFrom = rotTo = MENU_MOD + 1; } else if (v === 'contact') { cz = 1; rotFrom = rotTo = 1; } else { sz = 1; rotFrom = rotTo = 1; }
     document.body.classList.add('menus'); document.documentElement.style.overflow = 'hidden';
   }
 
+  window.addEventListener('pointermove', ev => {
+    const inside = view === 'contact' && cz === 1 && ev.clientX >= treeBox.l && ev.clientX <= treeBox.r && ev.clientY >= treeBox.t && ev.clientY <= treeBox.b;
+    if (inside && !wasInside) hoverT = 0;                        // only when the pointer arrives on the tree
+    wasInside = inside;
+  });
   window.addEventListener('resize', resize);
   resize();
   setTimeout(() => {
@@ -406,6 +686,76 @@
     shown = progress();
     requestAnimationFrame(loop);
   }, 300);
+})();
+</script>
+<script>
+/* ---- Menus window: content taken from the restaurant's own menu page -------- */
+(() => {
+  const MENU = [{"id":"breakfast","name":"Breakfast","intro":"Served 9am to 12pm — Eggs, flatbreads and small plates to share, Lebanese style.","notes":["Please let your server know of any allergies or intolerances before you order. Our kitchen is a busy environment, so we cannot guarantee the total absence of allergens."],"groups":[{"t":"Brunch Set Menu for Two","items":[{"n":"Brunch for Two","d":"A selection of ten dishes served with fresh bread and tea: shakshuka, houmous, labneh, falafel, foul moudamas, zaatar and olive oil, manakeesh halloumi, manakeesh zaatar, olives and crudités.","p":"£35.00"}]},{"t":"Traditional","items":[{"n":"English Breakfast","d":"2 eggs, Lebanese sausages (soujouk), beans, hash brown, tomato and grilled mushrooms.","p":"£11.75"},{"n":"English Vegetarian Breakfast","d":"2 eggs, halloumi cheese, beans, hash brown, tomato and grilled mushrooms.","p":"£10.95"},{"n":"Shakshouka","d":"Eggs gently poached in a rich tomato, pepper and onion sauce, perfect for dipping with hot bread.","p":"£9.50"},{"n":"Fried Eggs","d":"Two eggs cooked to order, simple and comforting. Add mushrooms £3.00.","p":"£7.00"},{"n":"Eggs and Sojok","d":"Two eggs cooked with spicy Lebanese sojok sausage, bold and satisfying.","p":"£9.50"},{"n":"Labneh w Zeitoun","d":"Creamy labneh drizzled with olive oil, served with olives and warm bread.","p":"£7.00"},{"n":"Tzatziki","d":"Cool yoghurt with cucumber, garlic and herbs. Light and refreshing.","p":"£7.00"},{"n":"Halloumi Meshwe","d":"Grilled halloumi cheese, golden and savoury, served with fresh vegetables, olives, pesto sauce and hot bread.","p":"£9.00"},{"n":"Feta Cheese & Watermelon","d":"Salty feta paired with sweet, juicy watermelon. Fresh and summery.","p":"£9.00"},{"n":"Falafel","d":"Crispy chickpea fritters, freshly fried and perfect for sharing.","p":"£7.00"},{"n":"Houmous Balila","d":"Slow-cooked chickpeas dressed with lemon, garlic and olive oil.","p":"£8.00"},{"n":"Houmous Awarma","d":"Classic hommos topped with tender lamb awarma.","p":"£10.00"},{"n":"Foul Moudamas","d":"Slow-cooked fava beans dressed with lemon, garlic and olive oil.","p":"£8.00"},{"n":"Makdous","d":"Baby aubergines stuffed with walnuts, garlic and red pepper.","p":"£7.00"},{"n":"Pickles & Olives","d":"A selection of traditional Lebanese pickles and olives.","p":"£5.00"}]},{"t":"Pastries","items":[{"n":"Arayes","d":"Grilled flatbread stuffed with seasoned minced meat, crisp and juicy. Add halloumi £4.00.","p":"£9.00"},{"n":"Kallaj","d":"Toasted Lebanese bread filled with halloumi cheese and tomato. Add sojok £4.00.","p":"£9.00"},{"n":"Manakeesh Zaatar","d":"Warm flatbread topped with zaatar and olive oil.","p":"£6.50"},{"n":"Manakeesh Cheese","d":"Warm flatbread topped with melted cheese. Add veg and olives £3.00.","p":"£7.50"},{"n":"Lahm Bi Ajine","d":"Warm flatbread topped with seasoned minced lamb, tomato and onions.","p":"£8.75"}]},{"t":"Sweet Breakfast","items":[{"n":"Kunafa in Sesame Bun","d":"A classic Lebanese dessert of crisp pastry and soft cheese, finished with sweet syrup.","p":"£8.00"},{"n":"Waffles","d":"Freshly made waffles topped with strawberry, banana and chocolate.","p":"£7.00"},{"n":"Manakeesh Nutella","d":"Warm flatbread topped with Nutella, banana and strawberry.","p":"£7.00"},{"n":"Honey & Jam","d":"Selection of honey, fig, strawberry and apricot jam.","p":"£8.00"}]}]},{"id":"lunch","name":"Lunch","intro":"Monday to Friday, 11:30am to 4:30pm — Plates built for a working lunch or a long one.","notes":["Lunch menu is served Monday to Friday only."],"groups":[{"t":"Lunch plates","items":[{"n":"Vegetarian Mezze Platter","k":"(V)","d":"Tabbouleh, falafel, fatayer spinach, houmous and vine leaves.","p":"£13.95"},{"n":"Wrap with Chips","d":"Any wrap (shawarma, shish taouk, kafta, falafel or halloumi) with French fries.","p":"£9.95"},{"n":"Vegetarian Stew","k":"(V)","d":"Bamieh (okra) or moussaka, with rice.","p":"£12.50"},{"n":"Kebbeh Bil Laban with Rice","d":"Lebanese lamb dumplings cooked in a minty yoghurt sauce, served with rice.","p":"£14.95"},{"n":"Mandaloun Mixed Grill","d":"Chicken taouk and kafta, served with houmous and rice or salad.","p":"£17.00"},{"n":"Shawarma Plate","d":"Shawarma (lamb, chicken or mix) served with salad and rice.","p":"£14.95"}]}]},{"id":"a-la-carte","name":"À La Carte","intro":"Mezze, grills, stews and seafood — Mezze to share, charcoal grills, slow stews and fish, with a Mediterranean turn.","notes":[],"groups":[{"t":"Mandaloun Signature","items":[{"n":"Grand Mezze","d":"Per person, minimum two. Cold: houmous, moutabbal, tabbouleh, vine leaves. Hot: falafel, kebbeh lamb, rakakat cheese, moussaka. Main: mixed grill or mixed shawarma with rice and chips. Dessert: baklawa and mouhallabieh.","p":"£35.00"}]},{"t":"Suggested Menu","items":[{"n":"Vegetarian Mezze Platter","k":"(V)","d":"Houmous, tabbouleh, falafel, fatayer spinach, vine leaves.","p":"£14.00"},{"n":"Mixed Mezze Platter","d":"Houmous, moutabbal, tabbouleh, kebbeh lamb, rakakat cheese.","p":"£15.00"},{"n":"Ultimate Mezze Experience","d":"Kabis, houmous, labneh, baba ghanouj, falafel, kebbeh, rakakat, salad, Lebanese bread.","p":"£26.00"}]},{"t":"Soup","items":[{"n":"Lentil Soup","k":"(V)","d":"A warm, comforting bowl of creamy red lentils cooked with aromatic spices. Served with toasted Lebanese bread.","p":"£7.50"},{"n":"Homemade Vegetable Soup","k":"(V)","d":"A classic bowl of comfort: vegetables, gentle herbs and a slow-cooked broth that tastes just like home.","p":"£7.50"}]},{"t":"Cold Mezze","items":[{"n":"Houmous","k":"(V, S)","d":"Silky chickpea and tahini purée blended with fresh lemon juice and olive oil.","p":"£8.00"},{"n":"Houmous Beiruty","k":"(V, S)","d":"Traditional houmous enhanced with hot peppers, parsley and garlic, as enjoyed in Beirut.","p":"£9.00"},{"n":"Moutabbal, Baba Ghanouj","k":"(V, S)","d":"Smoky grilled aubergine mixed with tahini and lemon.","p":"£9.00"},{"n":"Tabbouleh","k":"(V, G)","d":"The quintessential Lebanese queen of salads. A refreshing combination of parsley, tomato, onion and crushed wheat with lemon and olive oil.","p":"£9.00"},{"n":"Fattoush","k":"(V, G)","d":"Crisp mixed salad tossed with sumac, fresh vegetables and crunchy Lebanese bread in a zesty lemon and olive oil dressing.","p":"£9.00"},{"n":"Feta Salad","k":"(V, L)","d":"A vibrant Greek-style salad topped with creamy feta and Mediterranean herbs.","p":"£9.00"},{"n":"Warak Enab, Vine Leaves","k":"(V)","d":"Tender vine leaves rolled with seasoned rice, tomato and parsley, finished with lemon and olive oil.","p":"£9.00"},{"n":"Tzatziki","k":"(V, L)","d":"Cool yoghurt dip with cucumber, garlic and mint.","p":"£8.00"},{"n":"Shanklish","k":"(V, S, L)","d":"A traditional aged cheese ball served with zaatar, olive oil, onions and tomatoes.","p":"£8.50"},{"n":"Labneh","k":"(V, L)","d":"Thick, tangy strained yoghurt drizzled with olive oil and dried thyme.","p":"£8.00"},{"n":"The Famous Trio","k":"(V, S)","d":"A tasting trio of Lebanon&#x27;s classics: houmous, moutabbal and labneh.","p":"£12.00"}]},{"t":"Hot Mezze","items":[{"n":"Falafel","k":"(V, C)","d":"Golden fried chickpea and broad bean patties seasoned with herbs and spices.","p":"£8.00"},{"n":"Batata Harra","k":"(V)","d":"Spicy sautéed potatoes with coriander, garlic, chilli and peppers.","p":"£9.00"},{"n":"Houmous Shawarma","d":"Creamy houmous topped with your choice of tender chicken, lamb or mixed shawarma.","p":"£9.50"},{"n":"Grilled Halloumi","k":"(V, L)","d":"Grilled halloumi cheese with a perfectly crisp exterior.","p":"£9.00"},{"n":"Jawaneh","d":"Marinated chicken wings grilled with oriental spices and mustard.","p":"£9.00"},{"n":"Sawdat Djaj","d":"Marinated chicken liver sautéed with lemon and garlic.","p":"£8.50"},{"n":"Kebbeh","k":"(N)","d":"Cracked wheat shell filled with spiced minced lamb, onion and pine nuts.","p":"£9.00"},{"n":"Soujok","d":"Spicy Lebanese miniature lamb sausages sautéed with fresh tomato.","p":"£9.00"},{"n":"Kraydes Crevettes","k":"(C, G)","d":"Pan-fried prawns with garlic, coriander and chilli.","p":"£12.00"},{"n":"Calamari","k":"(G, S, M)","d":"Crispy fried calamari served with sesame tarator sauce.","p":"£10.00"},{"n":"Moussaka","k":"(V)","d":"Oven-baked aubergine with tomato, chickpeas and Mediterranean herbs.","p":"£10.00"},{"n":"Foul Moudamas","k":"(V)","d":"Warm fava beans and chickpeas with garlic, cumin, parsley, lemon and olive oil. Served with hot bread.","p":"£8.00"},{"n":"Bamia Bil Zeit","k":"(V)","d":"Okra cooked gently with tomatoes, onions, coriander and olive oil.","p":"£8.00"}]},{"t":"Pastry Mezze","items":[{"n":"Fatayer Spinach (4 pcs)","k":"(V, G)","d":"Fluffy pastries filled with seasoned spinach, sumac, onion, lemon and olive oil.","p":"£8.00"},{"n":"Sambousek Lamb (4 pcs)","k":"(G, N)","d":"Crispy pastries stuffed with minced lamb and pine nuts.","p":"£8.00"},{"n":"Sambousek Cheese (4 pcs)","k":"(G, L)","d":"Deep-fried pastry parcels filled with halloumi cheese.","p":"£8.00"},{"n":"Kallaj Halloumi","k":"(G, L)","d":"Toasted Lebanese flatbread filled with halloumi and tomato.","p":"£9.00"},{"n":"Rakakat Cheese Spring Rolls","k":"(G, L)","d":"Light filo rolls packed with melted halloumi.","p":"£8.00"},{"n":"Arayes Kaftah","k":"(G)","d":"Toasted Lebanese bread stuffed with seasoned minced lamb.","p":"£9.00"},{"n":"Arayes Mandaloun","k":"(G)","d":"Toasted flatbread filled with spicy soujok and halloumi.","p":"£12.00"}]},{"t":"Mains & Grills","pre":"All grills are served with rice or fries.","items":[{"n":"Shawarma Chicken / Lamb / Mix","d":"Thinly sliced, marinated meat roasted to perfection. Served with garlic dip.","p":"£19.50"},{"n":"Shish Taouk","d":"Charcoal-grilled marinated chicken breast skewers.","p":"£19.50"},{"n":"Farouj Mechwe","d":"Boneless chicken marinated in mixed spices and grilled. Served with garlic dip.","p":"£19.00"},{"n":"Kaftah Meshwieh","d":"Grilled minced lamb mixed with parsley and onion.","p":"£19.50"},{"n":"Kaftah Khash-Khash","d":"Grilled minced lamb in a rich, spicy tomato sauce.","p":"£21.00"},{"n":"Lahm Meshwe","d":"Juicy lamb cubes charcoal-grilled to perfection.","p":"£22.00"},{"n":"Mixed Grill","d":"A trio of lamb, shish taouk and kafta skewers, marinated and grilled.","p":"£25.00"},{"n":"Ribeye Steak","d":"250g ribeye steak marinated with thyme and Lebanese spices.","p":"£26.00"},{"n":"Lamb Cutlets","d":"Charcoal-grilled lamb cutlets marinated in aromatic herbs.","p":"£25.00"},{"n":"Family Platter","d":"Mixed grill, mixed shawarma, jawaneh and lamb cutlets.","p":"£58.00"}]},{"t":"Stews & Couscous","items":[{"n":"Kebbe Bi Laban","k":"(N)","d":"Lamb meatballs mixed with cracked wheat, stuffed with minced meat, onions and pine nuts, dipped in yoghurt with garlic and dried mint. Served with rice.","p":"£19.50"},{"n":"Bamia & Riz","d":"Okra stew cooked with lamb pieces and tomato sauce, served with saffron rice. Add lamb +7.","p":"£17.00"},{"n":"Moussaka & Riz","k":"(G, V)","d":"Baked aubergine with tomato, onion and chickpeas, served with Lebanese rice.","p":"£19.00"},{"n":"Couscous","k":"(G)","d":"A fragrant vegetable and chickpea stew over fluffy couscous. Add chicken +6, lamb +7 or prawn +7.","p":"£18.00"}]},{"t":"Fish & Seafood","items":[{"n":"Salmon Fillet","k":"(F, L, G)","d":"Pan-seared salmon fillet, simply seasoned and served with saffron rice or Lebanese rice topped with crispy onions, alongside grilled vegetables.","p":"£24.00"},{"n":"Seabass","k":"(F, L, G)","d":"Lightly pan-fried seabass fillet with crisp skin, served with fragrant saffron rice and a selection of grilled vegetables.","p":"£24.00"},{"n":"King Prawns","k":"(C, L, G)","d":"Grilled Mediterranean king prawns cooked in a garlic butter sauce, served with Lebanese rice and grilled vegetables.","p":"£25.00"}]},{"t":"Wrap Platters","pre":"All wrap platters are served with chips and salad, £15.00.","items":[{"n":"Chicken Shawarma","k":"(G)","d":"Marinated chicken slices with pickles, tomato and garlic sauce.","p":"£15.00"},{"n":"Lamb Shawarma","k":"(G, S)","d":"Marinated lamb with pickles, tomato, red onion, parsley and tahini.","p":"£15.00"},{"n":"Mix Shawarma","k":"(G)","d":"Chicken and lamb shawarma with pickles, tomato, red onion, parsley and garlic sauce.","p":"£15.00"},{"n":"Shish Taouk","k":"(G)","d":"Grilled marinated chicken breast with pickles, tomato and garlic.","p":"£15.00"},{"n":"Kaftah Meshwieh","k":"(G)","d":"Minced lamb skewers with houmous and tabbouleh.","p":"£15.00"},{"n":"Lahm Meshwe","k":"(G)","d":"Grilled lamb cubes with pickles, tomato, red onion, parsley and tahini.","p":"£15.00"},{"n":"Falafel","k":"(V, G, S)","d":"Crispy falafel with pickles, tomato, parsley and tahini.","p":"£15.00"},{"n":"Halloumi Cheese","k":"(V, G, L)","d":"Grilled halloumi with mint, tomato, cucumber and olives.","p":"£15.00"},{"n":"Falafel & Halloumi","k":"(G, S, L)","d":"A hearty mix of falafel and halloumi with fresh vegetables and tahini.","p":"£15.00"}]},{"t":"Sides","items":[{"n":"French Fries","p":"£5.00"},{"n":"Phoenician Fries","p":"£6.00"},{"n":"Halloumi Fries","k":"(L)","p":"£7.00"},{"n":"Lebanese Rice","k":"(G)","p":"£6.00"},{"n":"Saffron Rice","p":"£7.00"},{"n":"Kabis","p":"£5.00"},{"n":"Fresh Veg, Pickles & Olives","p":"£5.00"}]},{"t":"Kids","pre":"Served with chips and salad.","items":[{"n":"Chicken Cubes Skewer","d":"Grilled chicken cubes, served with crispy chips and a fresh chunky salad.","p":"£9.00"},{"n":"Chicken Nuggets","k":"(G)","p":"£9.00"},{"n":"Meat Kafta Burger","k":"(G, L)","d":"Minced meat gently seasoned, in a soft bun. Served with chips and a little side salad.","p":"£10.00"},{"n":"Halloumi & Falafel Burger","k":"(G, L, S)","d":"Grilled halloumi and crispy falafel in a soft bun. A fun veggie favourite.","p":"£10.00"},{"n":"Shawarma Lamb / Chicken / Mix","d":"Juicy, slow-cooked lamb, chicken or a mix of both, full of flavour. Served with chips and salad.","p":"£10.00"}]}]},{"id":"desserts","name":"Desserts","intro":"Lebanese pastries and a few British favourites — Rose water, pistachio and warm syrup, with cheesecake and toffee for the traditionalists.","notes":[],"groups":[{"t":"Desserts","items":[{"n":"Knafe","k":"(G, L, N)","d":"A warm, indulgent Lebanese cheese pastry with a golden crust, finished with fragrant sugar syrup and crushed pistachios.","p":"£8.50"},{"n":"Riz Bi Halib","k":"(L, N)","d":"Creamy rice pudding infused with delicate rose water and topped with finely crushed pistachios.","p":"£8.00"},{"n":"Mouhallabieh","k":"(L, N)","d":"A silky Middle Eastern milk pudding scented with rose water, crowned with crushed pistachios.","p":"£8.00"},{"n":"Katayef Walnuts","k":"(G, L, N)","d":"Soft, pillowy Middle Eastern pancakes filled with a fragrant walnut and cinnamon mixture, lightly fried until golden and drizzled with aromatic sugar syrup.","p":"£8.00"},{"n":"Katayef Kashta","k":"(G, L, N)","d":"Delicate, folded pancakes filled with fresh kashta cream, served warm and finished with a touch of sugar syrup and crushed pistachios.","p":"£8.00"},{"n":"Burnt Basque Cheesecake","k":"(G, L, N)","d":"A crustless Spanish classic with a beautifully caramelised exterior and irresistibly creamy centre.","p":"£8.00"},{"n":"Basque Meets New York Cheesecake","k":"(G, L, N)","d":"A fusion of creamy New York richness and Basque-style lightness. Smooth, slightly crumbly and perfectly balanced.","p":"£8.00"},{"n":"Red Velvet Cake","k":"(G, L)","d":"Soft, velvety layers filled with smooth cream cheese frosting. A timeless favourite.","p":"£7.50"},{"n":"Sticky Toffee Pudding","k":"(G, L)","d":"A comforting British classic served warm with rich, sweet toffee sauce and one scoop of vanilla ice cream.","p":"£8.00"},{"n":"Waffle","k":"(G, L, N)","d":"Freshly made waffle topped with seasonal fruit and drizzled with chocolate sauce. Served with one scoop of ice cream.","p":"£7.00"},{"n":"Baklawa","k":"(G, L, N)","d":"A selection of traditional Lebanese layered pastries filled with premium pistachios, pine nuts or almonds.","p":"£5.50"},{"n":"Ice Cream (3 scoops)","d":"Vanilla, chocolate or strawberry.","p":"£7.00"},{"n":"Sorbet (2 scoops)","d":"Mango, lemon or strawberry.","p":"£7.00"}]}]},{"id":"drinks","name":"Drinks","intro":"Coffee, fresh juices, smoothies and beers — Lebanese coffee from the pot, fresh lemonada and juices pressed to order.","notes":["Drinks prices are taken from our July 2024 menu and may change. An optional service charge of 12.5% will be added to your bill."],"groups":[{"t":"Coffee & Tea","items":[{"n":"Lebanese Coffee","p":"£3.75"},{"n":"Cappuccino","p":"£3.50"},{"n":"Macchiato","p":"£3.25"},{"n":"Espresso","d":"Single 3.00, double 3.50.","p":"£3.00"},{"n":"Mocha","p":"£3.50"},{"n":"Americano","p":"£3.25"},{"n":"Latte","p":"£3.50"},{"n":"Hot Chocolate","p":"£3.75"},{"n":"Espresso Affogato","p":"£6.75"},{"n":"Tea","d":"Mandaloun fresh mint tea, English breakfast, Earl Grey, chamomile, jasmine, peppermint or green tea.","p":"£3.75"}]},{"t":"Fresh & Soft","items":[{"n":"Fresh Homemade Lemonada","d":"Fresh lemon juice, water, sugar and mint.","p":"£5.50"},{"n":"Fresh Juices","d":"Orange, apple or mango.","p":"£5.50"},{"n":"Pomegranate Juice","p":"£6.00"},{"n":"Watermelon Juice","p":"£6.00"},{"n":"Tomato Juice","p":"£5.50"},{"n":"Cranberry, Lychee, Passion Fruit, Pineapple or Grapefruit Juice","p":"£5.00"},{"n":"Mix Your Own","p":"£6.00"},{"n":"Ayran","d":"Yoghurt drink.","p":"£5.00"},{"n":"Jellab","d":"Date syrup with pine nuts.","p":"£6.00"},{"n":"Coke, Diet Coke, Fanta or Sprite","p":"£3.50"},{"n":"Natural or Sparkling Mineral Water","d":"Small 3.00, large 5.00.","p":"£3.00"}]},{"t":"Smoothies","pre":"£7.00 each.","items":[{"n":"Merry Berry","d":"Blackberry, blueberry, raspberry, strawberry and banana.","p":"£7.00"},{"n":"Strawberry Sunshine","d":"Strawberry, mango and banana.","p":"£7.00"},{"n":"Tropical Crush","d":"Passion fruit, pineapple, papaya, mango and banana.","p":"£7.00"},{"n":"Groovy Green","d":"Avocado, spinach, pear, mint, green apple and melon.","p":"£7.00"}]},{"t":"Milkshakes & Beers","items":[{"n":"Milkshake","d":"Strawberry, chocolate, vanilla or banana.","p":"£7.00"},{"n":"Byblos","d":"Lebanese beer.","p":"£6.50"},{"n":"Peroni","d":"Italian beer.","p":"£6.00"},{"n":"Lazizza","d":"Non-alcoholic beer. Apple, raspberry or peach.","p":"£5.00"},{"n":"Red Bull","p":"£4.50"}]}]},{"id":"wine","name":"Wine","intro":"Ten Lebanese wines from the Bekaa Valley — Lebanese bottles first, then a short international list. Prices shown are 175ml glass and bottle.","notes":["Wine prices are taken from our January 2025 list and may change. Please drink responsibly. An optional service charge of 12.5% will be added to your bill."],"groups":[{"t":"White, Lebanese","items":[{"n":"Le Bretèches, Château Kefraya","d":"Bekaa Valley, Lebanon. Floral aroma, elegant, soft, fresh.","p":"£8.75 glass · £34.00 bottle"},{"n":"Domaine Wardy, White","d":"Bekaa Valley, Lebanon. Plum, white peach, lavender.","p":"£9.00 glass · £35.00 bottle"},{"n":"Assyrtico, Château Oumsiyat","d":"Bekaa Valley, Lebanon. White fruits, delicate floral, refreshing.","p":"£9.50 glass · £37.00 bottle"},{"n":"Blanc de Blanc, Château Ksara","d":"Bekaa Valley, Lebanon. Exotic fruit, lemon, pineapple, elegant.","p":"£42.00 bottle"},{"n":"Rêve Blanc, Château Khoury","d":"Bekaa Valley, Lebanon. Citrus fruits, pineapple, honey.","p":"£47.00 bottle"}]},{"t":"White, International","items":[{"n":"Chenin Blanc","d":"Western Cape, South Africa. Crunchy apple, fresh pineapple, a touch of oak.","p":"£8.50 glass · £33.00 bottle"},{"n":"Chardonnay","d":"Undurraga, Chile. Tropical fruits, honey, fresh.","p":"£8.75 glass · £34.00 bottle"},{"n":"Pinot Grigio","d":"Da Luca, Northern Italy. White flowers, pink grapefruit, apple, guava, melon.","p":"£9.00 glass · £35.00 bottle"},{"n":"Sauvignon Blanc","d":"Waipara Hills, Marlborough, New Zealand. Citrus, pear, tropical fruit, pink grapefruit.","p":"£42.00 bottle"},{"n":"Gavi di Gavi","d":"Enrico Serafino, Northwest Italy. Floral, citrus aromas, fresh.","p":"£46.00 bottle"},{"n":"Chablis","d":"Les Sarments, Vignerons de Chablis, France. Fresh, lively, citrus, white blossom.","p":"£55.00 bottle"}]},{"t":"Red, Lebanese","items":[{"n":"Réserve du Couvent, Ksara","d":"Bekaa Valley, Lebanon. Subtle fruit, spicy notes, wood, vanilla.","p":"£9.00 glass · £35.00 bottle"},{"n":"Domaine Wardy, Red","d":"Bekaa Valley, Lebanon. Strawberry, blueberry, cherry, floral scent.","p":"£9.50 glass · £37.00 bottle"},{"n":"Grand Réserve, Château Oumsiyat","d":"Bekaa Valley, Lebanon. Rich, ripe red fruits, spicy aromas.","p":"£44.00 bottle"},{"n":"Le Château, Château Ksara","d":"Bekaa Valley, Lebanon. Vibrant, raspberry, blackcurrant, vanilla.","p":"£48.00 bottle"},{"n":"Château Musar","d":"Bekaa Valley, Lebanon. Aromatic, cherry jam, blackcurrant, raspberry.","p":"£62.00 bottle"}]},{"t":"Red, International","items":[{"n":"Merlot","d":"Terre du Soleil, France. Red plum, cherry, blackberry, vanilla.","p":"£8.50 glass · £33.00 bottle"},{"n":"Shiraz","d":"Boundary Line, Australia. Blackberry, dark berry, pipe tobacco, clove.","p":"£9.00 glass · £35.00 bottle"},{"n":"Cabernet Sauvignon","d":"Echeverria Reserva, Chile. Green peppercorn, dark chocolate, bell pepper.","p":"£9.50 glass · £37.00 bottle"},{"n":"Malbec","d":"Andeluna Raíces, San Juan, Argentina. Blackberry, plum, cherry, black pepper.","p":"£42.00 bottle"},{"n":"Rioja","d":"Maleya, Bideona, Spain. Cherry, plum, dill, vanilla, leather.","p":"£45.00 bottle"},{"n":"Chianti","d":"Tuscany, Italy. Dried herbs, cherry, strawberry.","p":"£49.00 bottle"}]}]},{"id":"shisha","name":"Shisha","intro":"By the table, in the lounge — Classic, frozen, premium and fresh fruit heads.","notes":["Proof of age is required. Shisha sharing is between two people maximum for 20 minutes. A re-head is recommended after 20 minutes for sharing and 40 minutes for individual use. Shisha prices are taken from our summer 2025 menu and may change."],"groups":[{"t":"Al Fakher","gp":"£35","items":[{"n":"Mint"},{"n":"Grape"},{"n":"Grape + Mint"},{"n":"Double Apple"},{"n":"Vanilla"},{"n":"Gum"},{"n":"Lemon"},{"n":"Watermelon"},{"n":"Strawberry"},{"n":"Any Mix of Flavours"}]},{"t":"Frozen","gp":"£45","items":[{"n":"Apple"},{"n":"Passion Fruit"},{"n":"Blueberry"},{"n":"Lychee"},{"n":"Raspberry"},{"n":"Strawberry Mojito"}]},{"t":"Starbuzz","gp":"£50","items":[{"n":"Blue Mist"},{"n":"White Peach"},{"n":"Pineapple"},{"n":"Pirate Cave"},{"n":"X on the Beach"},{"n":"Code 69"}]},{"t":"Premium","gp":"£55","items":[{"n":"Lady Killer","d":"Mango, melon, strawberry, mint."},{"n":"Love 66","d":"Sweet melons, passion fruit."},{"n":"Beirut Bay","d":"Blue Mist and Love 66."},{"n":"Nakhla Apple"}]},{"t":"Fresh Fruit Head","items":[{"n":"Grapefruit","p":"£65.00"},{"n":"Pineapple","p":"£75.00"},{"n":"Re-head","d":"From £25."},{"n":"Extra Disposable Pipe","p":"£4.00"}]}]}];
+  const LEGEND = "Key: V vegetarian · G gluten · L lactose · N nuts · S sesame · F fish · C crustaceans · M molluscs. If you have any food allergy, please tell your server and they will advise you. An optional 12.5% service charge is added to your bill.";
+  const nav = document.getElementById('mnav'), list = document.getElementById('mlist');
+  const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text) e.textContent = text; return e; };
+  const COLLAPSED = ['drinks', 'wine', 'shisha'];   // these menus open with every category closed
+  function show(m) {
+    for (const b of nav.children) b.setAttribute('aria-selected', b.dataset.id === m.id);
+    list.replaceChildren();
+    list.append(el('p', 'intro', m.intro));
+    for (const g of m.groups) {
+      const open = g === m.groups[0] && !COLLAPSED.includes(m.id);
+      const sec = el('section', 'grp' + (open ? ' open' : '')), head = el('button', 'gh'), rt = el('span', 'rt');
+      head.type = 'button'; head.setAttribute('aria-expanded', open);
+      head.append(el('span', 'tt', g.t));
+      if (g.gp) rt.append(el('span', '', g.gp));
+      rt.append(el('span', 'pm')); head.append(rt);
+      head.addEventListener('click', () => head.setAttribute('aria-expanded', sec.classList.toggle('open')));
+      const body = el('div', 'gb'), inner = el('div', 'gi'); body.append(inner); sec.append(head, body); list.append(sec);
+      if (g.pre) inner.append(el('p', 'gnote', g.pre));
+      for (const d of g.items) {
+        const a = el('div', 'dish'), row = el('div', 'row'), nm = el('span', 'nm', d.n);
+        if (d.k) nm.append(el('span', 'k', d.k));
+        row.append(nm); if (d.p) row.append(el('span', 'pr', d.p)); a.append(row);
+        if (d.d) a.append(el('p', 'ds', d.d));
+        inner.append(a);
+      }
+    }
+    const fine = [...m.notes, m.id === 'shisha' ? '' : LEGEND].filter(Boolean).join(' ');
+    if (fine) list.append(el('p', 'fine', fine));
+    list.scrollTop = 0;
+  }
+  for (const m of MENU) {
+    const b = el('button', '', m.name); b.type = 'button'; b.dataset.id = m.id; b.setAttribute('role', 'tab');
+    b.addEventListener('click', () => show(m)); nav.append(b);
+  }
+  show(MENU[0]);
+})();
+</script>
+<script>
+/* The hover ovals are redrawn to each link's actual size, so wide links (Private Dining) get a properly rounded, properly closed loop
+   instead of a stretched one. It starts at the top, sweeps round, overlaps a little past the start and tucks in, like a pen stroke. */
+(() => {
+  function oval(w, h) {
+    const cx = w / 2, cy = h / 2, rx = w / 2 - 1.5, ry = h / 2 - 1.5, pts = [];
+    const a0 = -Math.PI / 2 + .18, sweep = Math.PI * 2 * 1.035, n = 96;
+    for (let i = 0; i <= n; i++) {
+      const t = i / n, a = a0 - sweep * t;                                  // counter-clockwise, as the original was drawn
+      const tuck = t > .9 ? (t - .9) / .1 : 0;                              // the last stretch drifts inward so the end lands inside the start
+      const r = 1 + .025 * Math.sin(a * 2 + 1) - .09 * tuck * tuck;
+      pts.push((cx + Math.cos(a) * rx * r).toFixed(1) + ' ' + (cy + Math.sin(a) * ry * r).toFixed(1));
+    }
+    return 'M' + pts.join(' L');
+  }
+  function draw() {
+    for (const a of document.querySelectorAll('.links a')) {
+      const svg = a.querySelector('svg'), p = svg && svg.querySelector('path'); if (!p) continue;
+      const fs = parseFloat(getComputedStyle(a).fontSize), w = a.offsetWidth + 1.4 * fs, h = a.offsetHeight + .3 * fs;
+      svg.setAttribute('viewBox', '0 0 ' + w.toFixed(1) + ' ' + h.toFixed(1));
+      p.setAttribute('d', oval(w, h));
+    }
+  }
+  draw();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(draw);
+  window.addEventListener('load', draw);
+  let t; window.addEventListener('resize', () => { clearTimeout(t); t = setTimeout(draw, 80); });
 })();
 </script>
 </body>
