@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#dce8d4" media="(max-width: 760px), (hover: none) and (pointer: coarse)">
 <title>Mandaloun</title>
 <style>
   :root {
@@ -164,7 +165,7 @@
   .dish .pr { white-space: nowrap; font-variant-numeric: tabular-nums; font-size: clamp(.95rem, 1.2vw, 1.1rem); }
   .dish .ds { margin-top: .3rem; font-size: clamp(.85rem, 1.05vw, 1rem); line-height: 1.6; opacity: .72; max-width: 62ch; }
   .mlist .fine { margin-top: 2rem; font-size: .8rem; line-height: 1.7; opacity: .6; }
-  @media (max-width: 760px) {
+  @media (max-width: 760px), (hover: none) and (pointer: coarse) and (max-height: 500px) {
     .panel { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
     .mnav { flex-direction: row; justify-content: flex-start; overflow-x: auto; overflow-y: hidden; border-right: 0; border-bottom: 1px solid rgba(43,42,34,.14); padding: 12px 14px; gap: .4rem; }
     .mnav button { white-space: nowrap; font-size: 1rem; padding: .4em .7em; }
@@ -189,7 +190,7 @@
   .pcontact a:hover { color: #3d5340; }
   .pcontact .links2 { display: flex; flex-wrap: wrap; gap: .5rem 1.6rem; margin-top: 1.7rem; font-size: .86rem; letter-spacing: .2em; text-transform: uppercase; }
   .pcontact .links2 a { font-size: .86rem; }
-  @media (max-width: 760px) {
+  @media (max-width: 760px), (hover: none) and (pointer: coarse) and (max-height: 500px) {
     .pcontact { width: auto; right: 16px; top: var(--hdr, 60px); bottom: auto; padding-top: 2vh; }
     .pcontact p, .pcontact li { font-size: .95rem; line-height: 1.55; }
     .pcontact .eyebrow { margin-bottom: .5rem; } .pcontact h1 { font-size: 1.4rem; margin-bottom: 1rem; }
@@ -228,6 +229,7 @@
   .pstage.in .pit.on { opacity: 1; transform: none; filter: blur(0); visibility: visible;
     transition: opacity 2.4s cubic-bezier(.16,1,.3,1), transform 2.8s cubic-bezier(.16,1,.3,1), filter 2.2s ease-out, visibility 0s; }
   @media (prefers-reduced-motion: reduce) { .pit, .pstage.in .pit.on { transition-duration: .01s; transform: none; filter: none; } }
+  @media (prefers-reduced-motion: reduce) { .p-hint i { animation: none; } }
   .pit a { pointer-events: auto; }
   .pit .eyebrow { font-size: clamp(.7rem, .9vw, .85rem); letter-spacing: .3em; text-transform: uppercase; color: #c9a24a; margin-bottom: .9rem; }
   .pit h1, .pit h2 { font-weight: 400; letter-spacing: .3em; text-transform: uppercase; line-height: 1.5; }
@@ -254,7 +256,7 @@
   .book.blue:hover .pill path, .book.blue:focus-visible .pill path { fill: #c9a24a; }
   .book.blue { color: #eef1fa; text-shadow: none; }
   .book.blue:hover, .book.blue:focus-visible { color: #0d1b34; }
-  @media (max-width: 760px) {
+  @media (max-width: 760px), (hover: none) and (pointer: coarse) and (max-height: 500px) {
     .p-left { width: 64vw; top: calc(var(--tt, 100px) + 4vh); }
     .p-right { width: 64vw; top: calc(var(--tt, 100px) + var(--th, 600px) * .66); }
     .p-top { width: 56vw; top: calc(var(--tt, 100px) + var(--th, 600px) * .3); }
@@ -285,14 +287,14 @@
     .links { flex-wrap: wrap; justify-content: flex-end; row-gap: .2rem; }
   }
 
-  @media (max-width: 760px) {
+  @media (max-width: 760px), (hover: none) and (pointer: coarse) and (max-height: 500px) {
     .copy { width: auto; max-width: 62vw; font-size: 1.05rem; white-space: normal; }
     .copy-left  { top: 11vh; }
     .copy-right { top: auto; bottom: 8vh; }
   }
 
   /* ---- Phones ---- */
-  @media (max-width: 760px) {
+  @media (max-width: 760px), (hover: none) and (pointer: coarse) and (max-height: 500px) {
     .bar-top { flex-wrap: nowrap; row-gap: 0; padding: 10px 14px; }
     .brand { font-size: clamp(.68rem, 2.7vw, .9rem); letter-spacing: .2em; }
     .links { flex-wrap: nowrap; gap: clamp(.4rem, 2.6vw, .85rem); }
@@ -323,7 +325,126 @@
     .pit .cta { justify-content: center; }
     .p-top .figures { gap: 1.4rem; }
   }
-  @media (max-width: 350px) { .bar-top { flex-wrap: wrap; } .links { flex-wrap: wrap; justify-content: flex-end; } }
+  .p-hint { display: none; }
+
+  /* ---- Phones, round two: readable header, thumb-sized targets, and landscape ---- */
+  @media (max-width: 760px), (hover: none) and (pointer: coarse) and (max-height: 500px) {
+    html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    a, button { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+
+    /* the address bar can slide away: the stage (and night sky) cover the tallest screen, the tree is sized to the shortest */
+    .stage { height: 100vh; height: 100lvh; }
+
+    /* menu bar: the name centred on top, the four links spread evenly beneath it */
+    .bar-top { flex-direction: column; align-items: stretch; padding: 10px 16px 0; row-gap: 0; }
+    .brand { align-self: center; font-size: 1rem; letter-spacing: .32em; text-indent: .32em; padding: 4px 0 2px; }
+    .links { justify-content: space-between; gap: 0; }
+    .links a { font-size: clamp(.82rem, 3.9vw, .98rem); padding: .55em .1em; }
+    .links a::after, .brand::after { content: ""; position: absolute; inset: -4px -8px; }   /* bigger tap area, same look */
+    .brand { position: relative; }
+
+    /* "view our menus": a comfortable tap target */
+    .cue-menus { padding: 12px 18px; }
+
+    /* menus: a fade on the right says the tabs scroll; bigger tabs */
+    .mnav { -webkit-mask-image: linear-gradient(to right, transparent 0, #000 12px, #000 calc(100% - 34px), transparent); mask-image: linear-gradient(to right, transparent 0, #000 12px, #000 calc(100% - 34px), transparent); scrollbar-width: none; }
+    .mnav::-webkit-scrollbar { display: none; }
+    .mnav button { padding: .6em .75em; }
+    .mnav button[aria-selected="true"] { padding-left: .75em; }
+
+    /* private dining: easier reading on the dark cards */
+    .pit .eyebrow { font-size: .74rem; }
+    .pit p { font-size: .9rem; line-height: 1.6; }
+    .pit .lead { font-size: 1rem; }
+    .pit h3 { font-size: .78rem; }
+    .p-top .figure b { font-size: 1.7rem; }
+    .p-top .figure span { font-size: .68rem; }
+    .pit .cta a { position: relative; font-size: .76rem; }
+    .pit .cta a::after { content: ""; position: absolute; inset: -12px -6px; }
+    .p-hint { display: flex; flex-direction: column; align-items: center; gap: .9rem; font-size: .8rem; letter-spacing: .5em; text-indent: .5em; color: #eef1fa; }
+    .p-hint i { display: block; width: 1px; height: 34px; background: currentColor; transform-origin: top; animation: cue-drift 2.8s ease-in-out infinite; }
+    .pit:not(.p-btn).p-hint { left: 0; right: 0; margin: 0 auto; width: max-content; top: auto; bottom: 7vh; background: none; border: 0; padding: 0; -webkit-backdrop-filter: none; backdrop-filter: none; }
+
+    /* contact: scrolls if it has to; links get room for a thumb */
+    .pcontact.on { pointer-events: auto; }
+    .pcontact { max-height: calc(100svh - var(--hdr, 60px)); overflow-y: auto; scrollbar-width: none; }
+    .pcontact a { position: relative; }
+    .pcontact a::after { content: ""; position: absolute; inset: -9px -6px; }
+    .pcontact .hrs b, .pcontact .hrs span { white-space: nowrap; }
+
+    /* enquiry pop-up */
+    .enq { padding: 14px; }
+    .enq-win { max-height: calc(100svh - 28px); overscroll-behavior: contain; }
+    .enq-x { top: 6px; right: 6px; width: 44px; height: 44px; }
+    .enq-x::before, .enq-x::after { left: 13px; right: 13px; }
+    .enq-win .eyebrow { padding-right: 34px; }
+  }
+  @media (max-width: 360px) {
+    .pcontact p, .pcontact li { font-size: .88rem; }
+    .pcontact .hrs li { gap: .8rem; }
+    .pcontact h1 { margin-bottom: .7rem; }
+  }
+
+  /* No hover on a touch screen: a tap would leave the oval or the gold button stuck on, so show the page you're on instead */
+  @media (hover: none) {
+    .links a:hover path { stroke-dashoffset: 1; opacity: 0; }
+    .links a[aria-current] path { stroke-dashoffset: 0; opacity: 1; transition: stroke-dashoffset .45s cubic-bezier(.5,.1,.2,1), opacity 0s; }
+    .book:hover:not(:active) { color: #edf2e8; }
+    .book:hover:not(:active) .pill path { fill: #3d5340; }
+    .book:hover:not(:active) .ring { inset: -.45em -.8em; width: calc(100% + 1.6em); height: calc(100% + .9em); }
+    .book.blue:hover:not(:active) { color: #eef1fa; }
+    .book.blue:hover:not(:active) .pill path { fill: #24427a; }
+    .pcontact a:hover { color: var(--ink); }
+    .pit .cta a:hover { color: #eef1fa; }
+  }
+
+  /* ---- Phones on their side: one row of links, text either side of the tree, columns where there's width ---- */
+  @media (hover: none) and (pointer: coarse) and (max-height: 500px) {
+    .bar-top { flex-direction: row; align-items: center; justify-content: space-between; padding: 6px 22px; }
+    .brand { align-self: auto; font-size: .92rem; text-indent: 0; }
+    .links { gap: 1.3rem; }
+    .links a { font-size: .9rem; padding: .5em .1em; }
+
+    .copy { max-width: 44vw; font-size: .88rem; }
+    .copy-left { top: calc(var(--hdr, 50px) + 2vh); left: 22px; }
+    .copy-right { right: 22px; bottom: 5vh; }
+    .book-wrap { margin-top: .9em; }
+
+    /* menus: the list of menus goes back to the left-hand column */
+    .panel { grid-template-columns: minmax(140px, 22%) 1fr; grid-template-rows: none; }
+    .mnav { flex-direction: column; justify-content: flex-start; overflow-x: hidden; overflow-y: auto; border-right: 1px solid rgba(43,42,34,.14); border-bottom: 0;
+      padding: 10px 10px 10px 18px; gap: 0; -webkit-mask-image: none; mask-image: none; }
+    .mnav button { font-size: .95rem; padding: .5em .2em; }
+    .mnav button[aria-selected="true"] { padding-left: .9em; }
+    .mnav button[aria-selected="true"]::before { display: block; }
+    .mlist { padding: 14px 24px 30px; }
+
+    /* private dining: a wider card, with the three formats and the three steps side by side */
+    .pit:not(.p-btn):not(.p-hint) { left: 0; right: 0; margin: 0 auto; width: min(90vw, 700px); top: calc(var(--hdr, 50px) + 3vh); padding: 14px 22px; }
+    .p-mid, .p-right { display: grid; grid-template-columns: repeat(3, 1fr); column-gap: 20px; align-items: start; }
+    .p-mid > *, .p-right > * { grid-column: 1 / -1; }
+    .p-mid h3, .p-right h3 { margin: 0 0 .25rem; }
+    .p-mid h3 { grid-row: 2; } .p-mid p { grid-row: 3; }
+    .p-right .eyebrow { grid-row: 1; } .p-right h2 { grid-row: 2; } .p-right h3 { grid-row: 3; } .p-right p:not(.eyebrow) { grid-row: 4; }
+    .p-mid h3:nth-of-type(1), .p-mid p:nth-of-type(1), .p-right h3:nth-of-type(1), .p-right p:nth-of-type(2) { grid-column: 1; }
+    .p-mid h3:nth-of-type(2), .p-mid p:nth-of-type(2), .p-right h3:nth-of-type(2), .p-right p:nth-of-type(3) { grid-column: 2; }
+    .p-mid h3:nth-of-type(3), .p-mid p:nth-of-type(3), .p-right h3:nth-of-type(3), .p-right p:nth-of-type(4) { grid-column: 3; }
+    .pit p { font-size: .84rem; line-height: 1.5; }
+    .pit h2 { margin-bottom: .5rem; }
+    .pit:not(.p-btn).p-hint { bottom: 5vh; }
+
+    /* contact: details on the left, the tree turns on the right (as on a computer) */
+    .pcontact { left: 22px; right: auto; width: 54vw; top: var(--hdr, 50px); bottom: 0; max-height: none; padding: 10px 0 14px; justify-content: flex-start; }
+    .pcontact .eyebrow { display: none; }
+    .pcontact h1 { font-size: 1.15rem; margin-bottom: .5rem; }
+    .pcontact p, .pcontact li { font-size: .86rem; line-height: 1.45; }
+    .pcontact .hrs { margin: .5rem 0; padding: .4rem 0; }
+    .pcontact .links2 { margin-top: .6rem; }
+
+    .enq-win { padding: 22px 28px; }
+    .enq-win h2 { margin-bottom: 1rem; }
+    .enq-ph { padding: 1.2rem 1.2rem; }
+  }
 </style>
 </head>
 <body class="loading">
@@ -378,7 +499,7 @@
 <div class="pscroll" id="pscroll" tabindex="0"><div style="height:420vh"></div></div>
 
 <div class="pstage" id="pstage">
-  <section class="pit p-left" data-in="0.04" data-min="0.03" data-mout="0.26">
+  <section class="pit p-left" data-in="0.04" data-min="0" data-mout="0.26">
     <p class="eyebrow">Private dining &amp; events</p>
     <h1>Your occasion, our table</h1>
     <p class="lead">Birthdays, family reunions, company dinners and celebrations of every size, hosted in the heart of Westfield London.</p>
@@ -408,6 +529,8 @@
     <h3>Shape the menu</h3><p>Our team works with you on a menu that fits your guests and your budget.</p>
     <h3>We host</h3><p>On the night, the kitchen, the bar and the room are ours to look after.</p>
   </section>
+
+  <div class="pit p-hint" data-in="9" data-min="0" data-mout="0.03" aria-hidden="true">scroll<i></i></div>
 
   <div class="pit p-btn" data-in="0.8" data-min="0.86"><a class="book blue" href="#enquire"><svg class="pill" viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path d="M30 6 C70 1 140 3 176 8 C196 12 199 26 195 38 C191 52 168 57 120 58 C80 59 40 58 22 52 C4 46 2 24 12 14 C16 9 22 7 30 6 Z"/></svg><svg class="ring" viewBox="0 0 200 60" preserveAspectRatio="none" aria-hidden="true"><path d="M44 4 C90 -1 160 1 190 9 C203 14 201 34 192 44 C178 58 120 61 70 59 C30 58 6 50 3 33 C0 16 24 6 60 3 C90 1 118 1 140 3"/></svg>Enquire</a></div>
 </div>
@@ -480,8 +603,11 @@
   const cue = document.getElementById('cue'), cue2 = document.getElementById('cue2');
   let cueOpacity = -1;
   let W = 0, H = 0, dpr = 1, dirty = true, HDR = 0;
+  // phones (and phones on their side): the same tests as the phone CSS
+  const PHONE_MQ = matchMedia('(max-width: 760px), (hover: none) and (pointer: coarse) and (max-height: 500px)'), LAND_MQ = matchMedia('(hover: none) and (pointer: coarse) and (max-height: 500px)');
+  let PHONE = false, LAND = false;
   function drawStars() {            // static scatter, redrawn on resize; layer b twinkles via CSS
-    const w = W, h = Math.max(1, H - HDR);
+    const w = W, h = Math.max(1, PHONE ? night.clientHeight : H - HDR);   // on a phone the sky runs to the bottom of the tallest screen
     let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
     for (const id of ['stars-a', 'stars-b']) {
       const c = document.getElementById(id), g = c.getContext('2d');
@@ -497,10 +623,11 @@
     }
   }
   // On a phone the tree is sized by height and centred, so it runs off both sides rather than shrinking to fit the width.
-  const fitScale = () => W < 760 ? (H - HDR - TOP_GAP) / CH : Math.min(W * FILL / CW, (H - HDR - TOP_GAP) / CH);
+  const fitScale = () => PHONE ? (H - HDR - TOP_GAP) / CH : Math.min(W * FILL / CW, (H - HDR - TOP_GAP) / CH);
   function resize() {
     dpr = Math.min(window.devicePixelRatio || 1, 2);
     W = window.innerWidth; H = window.innerHeight;
+    PHONE = PHONE_MQ.matches; LAND = LAND_MQ.matches;
     HDR = headerEl.offsetHeight;                       // the tree sits below the menu bar
     night.style.top = HDR + 'px';
     { const sC = fitScale(), r = document.documentElement.style;   // where the tree sits (standing on the bottom of the window), for the private dining text
@@ -508,9 +635,15 @@
     document.documentElement.style.setProperty('--hdr', HDR + 'px');
     drawStars();
     canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+    canvas.style.height = PHONE ? H + 'px' : '';            // phones: the stage is taller than the tree, so pin the drawing to the screen it was sized for
     { const room = H - HDR, sCss = fitScale();   // as tall as the space under the menu bar
-      L = { room, sCss, sEnd: Math.max(W / CW, sCss * 1.3), yHome: H - CH * sCss };   // the tree stands on the bottom edge of the window
-      cue.style.top = cue2.style.top = (L.yHome + CH * sCss / 2) + 'px'; }   // middle of the tree
+      L = { room, sCss, sEnd: Math.max(W / CW, sCss * 1.3), yHome: H - CH * sCss, cBottom: pcontact.getBoundingClientRect().bottom };   // the tree stands on the bottom edge of the window
+      cue.style.top = cue2.style.top = (L.yHome + CH * sCss / 2) + 'px'; cue2.style.left = '';
+      if (PHONE) {                                   // phones: "view our menus" sits in the gap between the two blocks of text
+        const cl = document.querySelector('.copy-left').getBoundingClientRect(), a = cl.bottom, b = document.querySelector('.copy-right').getBoundingClientRect().top;
+        if (b - a > 60) cue2.style.top = ((a + b) / 2) + 'px';
+        else if (LAND) { cue2.style.top = (a + 40) + 'px'; cue2.style.left = (cl.left + cue2.offsetWidth / 2) + 'px'; }   // on its side: under the first lines, on the left
+      } }   // middle of the tree
     cam.ready = false;                                 // re-fit instantly on resize
     stepCamera(0);
     dirty = true;
@@ -573,7 +706,7 @@
   const cam = { k: 0, x: 0, y: 0, vk: 0, vx: 0, vy: 0, ready: false };   // k is log-scale relative to the fitted size
   let L = { room: 0, sCss: 1, sEnd: 1, yHome: 0 };
   function camTarget() {
-    const narrow = W < 760, sc = narrow ? Math.min(CONTACT_SCALE * .75, W * .95 / (CW * L.sCss), H * .3 / (CH * L.sCss)) : CONTACT_SCALE;   // on a phone the contact tree is kept inside the screen width
+    const narrow = PHONE && !LAND, sc = narrow ? Math.min(CONTACT_SCALE * .75, W * .95 / (CW * L.sCss), H * .3 / (CH * L.sCss), Math.max(H * .16, H - L.cBottom - 20) / (CH * L.sCss)) : CONTACT_SCALE;   // on a phone the contact tree is kept inside the screen width, and below the details
     if (view === 'menus') return { k: Math.log(L.sEnd / L.sCss), x: W / 2, y: L.yHome };            // grows from the tip, which stays put
     if (view === 'contact') {                                                                          // small, settling on the right
       const h = CH * L.sCss * sc;
@@ -659,7 +792,7 @@
     const ptarget = pmax > 0 ? pscroll.scrollTop / pmax : 0;
     pshown += (ptarget - pshown) * (1 - Math.exp(-SNAPPY * dt));   // the tree follows the windows, softly
     for (const l of pits) {                    // each piece comes in at its point in the scroll (the left text hands over to the next)
-      const phone = W < 760, a = phone ? l.mat : l.at, o = phone ? l.mout : l.out;   // on a phone the pieces take turns instead of piling up
+      const phone = PHONE, a = phone ? l.mat : l.at, o = phone ? l.mout : l.out;   // on a phone the pieces take turns instead of piling up
       const on = pin && pshown >= a && pshown < o;
       if (on !== l.on) { l.on = on; l.el.classList.toggle('on', on); }
     }
@@ -694,20 +827,36 @@
     enq.classList.toggle('open', open); enq.setAttribute('aria-hidden', !open);
     if (open) { enqFrom = document.activeElement; setTimeout(() => enqX.focus(), 50); } else if (enqFrom) { enqFrom.focus(); enqFrom = null; }
   }
-  enqX.addEventListener('click', () => enqOpen(false));
-  enq.addEventListener('click', ev => { if (ev.target === enq) enqOpen(false); });   // click outside the window
-  document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && enq.classList.contains('open')) enqOpen(false); });
+  enqX.addEventListener('click', () => enqClose());
+  enq.addEventListener('click', ev => { if (ev.target === enq) enqClose(); });   // click outside the window
+  document.addEventListener('keydown', ev => { if (ev.key === 'Escape' && enq.classList.contains('open')) enqClose(); });
   document.addEventListener('click', ev => {
     const q = ev.target.closest('a[href="#enquire"]');
-    if (q) { ev.preventDefault(); enqOpen(true); }
+    if (q) {
+      ev.preventDefault();
+      if (PHONE && !enq.classList.contains('open')) { history.pushState({ enq: true }, '', location.href); enqPushed = true; }   // phones: the back gesture closes it
+      enqOpen(true);
+    }
   });
+  /* Phones: going from home into a view adds a history step, so the back button / back swipe returns home instead of leaving the site */
+  let pushed = false, enqPushed = false;
+  function enqClose() { if (enqPushed) history.back(); else enqOpen(false); }
   document.addEventListener('click', ev => {
     const a = ev.target.closest('a[href="#menus"], a[href="#private-dining"], a[href="#contact"], a[href="#home"]');
     if (!a) return;
     ev.preventDefault();
     const h = a.getAttribute('href');
+    if (PHONE && view === 'home' && h !== '#home') { history.pushState(null, '', h); pushed = true; }
+    else if (PHONE && h === '#home' && pushed) { history.back(); return; }   // popstate below takes it home
+    else history.replaceState(null, '', h === '#home' ? location.pathname : h);
     setView(VIEWS[h]);
-    history.replaceState(null, '', h === '#home' ? location.pathname : h);
+  });
+  window.addEventListener('popstate', ev => {
+    if (!PHONE && !pushed && !enqPushed) return;
+    if (enq.classList.contains('open') && !(ev.state && ev.state.enq)) { enqPushed = false; enqOpen(false); }
+    const v = VIEWS[location.hash] || 'home';
+    if (v === 'home') pushed = false;
+    setView(v);
   });
   if (VIEWS[location.hash] && VIEWS[location.hash] !== 'home') {    // deep link: start there, no animation
     const v = VIEWS[location.hash]; view = v; held = 0;
@@ -720,6 +869,11 @@
     if (inside && !wasInside) hoverT = 0;                        // only when the pointer arrives on the tree
     wasInside = inside;
   });
+  window.addEventListener('pointerdown', ev => {           // touch screens have no hover: a tap on the tree sends it spinning instead
+    if (ev.pointerType === 'mouse') return;
+    if (view === 'contact' && cz === 1 && ev.clientX >= treeBox.l && ev.clientX <= treeBox.r && ev.clientY >= treeBox.t && ev.clientY <= treeBox.b) hoverT = 0;
+  });
+  document.addEventListener('touchstart', () => {}, { passive: true });   // lets iOS show :active, the tap feedback on the buttons
   let lastW = window.innerWidth, lastH = window.innerHeight;
   window.addEventListener('resize', () => {                     // phones fire this when the address bar slides away: ignore that, it would make the tree jump
     if (matchMedia('(pointer: coarse)').matches && window.innerWidth === lastW && Math.abs(window.innerHeight - lastH) < 170) return;
@@ -745,6 +899,10 @@
   const COLLAPSED = ['drinks', 'wine', 'shisha'];   // these menus open with every category closed
   function show(m) {
     for (const b of nav.children) b.setAttribute('aria-selected', b.dataset.id === m.id);
+    if (nav.scrollWidth > nav.clientWidth + 1) {   // phones: the tabs scroll sideways, so bring the chosen one to the middle
+      const b = [...nav.children].find(b => b.dataset.id === m.id);
+      nav.scrollTo({ left: nav.scrollLeft + b.getBoundingClientRect().left - nav.getBoundingClientRect().left - (nav.clientWidth - b.offsetWidth) / 2, behavior: 'smooth' });
+    }
     list.replaceChildren();
     list.append(el('p', 'intro', m.intro));
     for (const g of m.groups) {
